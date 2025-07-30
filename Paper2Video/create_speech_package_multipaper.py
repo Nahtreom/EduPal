@@ -1,4 +1,4 @@
-# create_speech_package.py
+# create_speech_package_multipaper.py
 import os
 import sys
 import argparse

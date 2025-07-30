@@ -1,0 +1,920 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>反馈编辑器</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+            color: #333;
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        .container {
+            display: flex;
+            height: 100vh;
+            flex-direction: column;
+        }
+        
+        .header {
+            background: white;
+            padding: 15px 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            z-index: 10;
+            position: relative;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .header h1 {
+            font-size: 20px;
+            font-weight: 600;
+            color: #333;
+            margin: 0;
+        }
+        
+        .header-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        
+        .btn-primary {
+            background: #007bff;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #0056b3;
+        }
+        
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background: #1e7e34;
+        }
+        
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background: #c82333;
+        }
+        
+        .main-content {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+        }
+        
+        .left-panel {
+            width: 50%;
+            background: white;
+            border-right: 1px solid #e0e0e0;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .right-panel {
+            width: 50%;
+            background: white;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .panel-header {
+            padding: 15px 20px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e0e0e0;
+            font-weight: 600;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .video-container {
+            flex: 1;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .video-player {
+            width: 100%;
+            max-height: 400px;
+            background: #000;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .video-controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .video-list {
+            flex: 1;
+            overflow-y: auto;
+        }
+        
+        .video-item {
+            padding: 10px;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .video-item:hover {
+            background: #f8f9fa;
+        }
+        
+        .video-item.active {
+            background: #e3f2fd;
+            border-color: #2196f3;
+        }
+        
+        .editor-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .editor-tabs {
+            display: flex;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .editor-tab {
+            padding: 12px 20px;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s;
+        }
+        
+        .editor-tab.active {
+            background: white;
+            border-bottom-color: #007bff;
+            color: #007bff;
+        }
+        
+        .editor-tab:hover {
+            background: #e9ecef;
+        }
+        
+        .editor-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .file-list {
+            height: 200px;
+            overflow-y: auto;
+            border-bottom: 1px solid #e0e0e0;
+            padding: 10px;
+        }
+        
+        .file-item {
+            padding: 8px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-bottom: 5px;
+        }
+        
+        .file-item:hover {
+            background: #f8f9fa;
+        }
+        
+        .file-item.active {
+            background: #e3f2fd;
+            color: #2196f3;
+        }
+        
+        .editor-wrapper {
+            flex: 1;
+            position: relative;
+        }
+        
+        .editor-textarea {
+            width: 100%;
+            height: 100%;
+            border: none;
+            resize: none;
+            padding: 20px;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 14px;
+            line-height: 1.5;
+            outline: none;
+            background: #fafafa;
+        }
+        
+        .editor-toolbar {
+            padding: 10px 20px;
+            background: #f8f9fa;
+            border-top: 1px solid #e0e0e0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .feedback-section {
+            padding: 20px;
+            border-top: 1px solid #e0e0e0;
+            background: #f8f9fa;
+        }
+        
+        .feedback-input {
+            width: 100%;
+            height: 100px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 10px;
+            resize: vertical;
+            font-family: inherit;
+            font-size: 14px;
+        }
+        
+        .feedback-buttons {
+            margin-top: 10px;
+            display: flex;
+            gap: 10px;
+        }
+        
+        .status-bar {
+            padding: 10px 20px;
+            background: #f8f9fa;
+            border-top: 1px solid #e0e0e0;
+            font-size: 12px;
+            color: #666;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+        
+        .modal-content {
+            background-color: white;
+            margin: 15% auto;
+            padding: 20px;
+            border-radius: 8px;
+            width: 80%;
+            max-width: 600px;
+        }
+        
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        .close:hover {
+            color: #000;
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 2s linear infinite;
+            margin: 0 auto 10px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .hidden {
+            display: none !important;
+        }
+        
+        .error-message {
+            color: #dc3545;
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            border-radius: 4px;
+            padding: 10px;
+            margin: 10px 0;
+        }
+        
+        .success-message {
+            color: #155724;
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            border-radius: 4px;
+            padding: 10px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>反馈编辑器 - {{ process_id }}</h1>
+            <div class="header-buttons">
+                <button class="btn btn-primary" onclick="saveCurrentFile()">保存当前文件</button>
+                <button class="btn btn-success" onclick="finishEditing()">完成编辑</button>
+                <button class="btn btn-danger" onclick="closeEditor()" id="closeEditorBtn">关闭编辑器</button>
+            </div>
+        </div>
+        
+        <div class="main-content">
+            <div class="left-panel">
+                <div class="panel-header">
+                    <span>视频预览</span>
+                    <div class="video-controls">
+                        <button class="btn btn-primary" onclick="takeScreenshot()">截图反馈</button>
+                    </div>
+                </div>
+                
+                <div class="video-container">
+                    <video class="video-player" id="videoPlayer" controls>
+                        <source src="" type="video/mp4">
+                        您的浏览器不支持视频标签。
+                    </video>
+                    
+                    <div class="video-list" id="videoList">
+                        <!-- 视频文件列表将在这里动态生成 -->
+                    </div>
+                </div>
+
+                <div class="ppt-container" id="pptContainer" style="display: none;">
+                    <div class="panel-header">
+                        <span>PPT 预览</span>
+                    </div>
+
+                    <!-- PPT 播放区域 -->
+                    <div class="ppt-viewer">
+                        <iframe id="pptViewer" width="100%" height="600px" frameborder="0"></iframe>
+                    </div>
+
+                    <!-- PPT 文件列表（可选） -->
+                    <div class="ppt-list" id="pptList">
+                        <!-- 可动态添加 PPT 文件按钮，如同 videoList -->
+                    </div>
+                </div>
+                
+                <div class="feedback-section">
+                    <h4>反馈意见</h4>
+                    <textarea class="feedback-input" id="feedbackInput" placeholder="请输入您的反馈意见..."></textarea>
+                    <div class="feedback-buttons">
+                        <button class="btn btn-primary" onclick="submitFeedback()">提交反馈</button>
+                        <button class="btn btn-primary" onclick="optimizeWithAI()">AI优化建议</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="right-panel">
+                <div class="panel-header">
+                    <span>代码与讲稿编辑</span>
+                </div>
+                
+                <div class="editor-container">
+                    <div class="editor-tabs">
+                        <div class="editor-tab active" onclick="switchTab('code')">代码文件</div>
+                        <div class="editor-tab" onclick="switchTab('script')">讲稿文件</div>
+                    </div>
+                    
+                    <div class="editor-content">
+                        <div class="file-list" id="fileList">
+                            <!-- 文件列表将在这里动态生成 -->
+                        </div>
+                        
+                        <div class="editor-wrapper">
+                            <textarea class="editor-textarea" id="editorTextarea" placeholder="选择一个文件开始编辑..."></textarea>
+                        </div>
+                        
+                        <div class="editor-toolbar">
+                            <div>
+                                <span id="currentFile">未选择文件</span>
+                                <span id="fileStatus"></span>
+                            </div>
+                            <div>
+                                <button class="btn btn-primary" onclick="createNewFile()">新建文件</button>
+                                <button class="btn btn-primary" onclick="optimizeCode()">优化代码</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="status-bar" id="statusBar">
+            就绪
+        </div>
+    </div>
+    
+    <!-- 模态框 -->
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <div id="modalContent">
+                <!-- 模态框内容将在这里动态生成 -->
+            </div>
+        </div>
+    </div>
+    
+    <!-- 加载提示 -->
+    <div id="loading" class="loading">
+        <div class="spinner"></div>
+        <p>处理中...</p>
+    </div>
+    
+    <script>
+        // 全局变量
+        let processId = '{{ process_id }}';
+        let currentTab = 'code';
+        let currentFile = null;
+        let currentFileContent = '';
+        let videoFiles = {{ video_files | tojsonfilter }};
+        let codeFiles = {{ code_files | tojsonfilter }};
+        let scriptFiles = {{ script_files | tojsonfilter }};
+        let hasUnsavedChanges = false;
+        
+        // 初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeEditor();
+            loadVideoList();
+            loadFileList();
+            
+            // 检测是否在iframe中
+            if (window.parent !== window) {
+                // 在iframe中，隐藏关闭按钮
+                const closeBtn = document.getElementById('closeEditorBtn');
+                if (closeBtn) {
+                    closeBtn.style.display = 'none';
+                }
+            }
+            
+            // 监听编辑器内容变化
+            document.getElementById('editorTextarea').addEventListener('input', function() {
+                hasUnsavedChanges = true;
+                updateFileStatus('未保存');
+            });
+        });
+        
+        // 初始化编辑器
+        function initializeEditor() {
+            updateStatus('编辑器已就绪');
+            
+            // 如果有视频文件，加载第一个
+            if (videoFiles.length > 0) {
+                loadVideo(videoFiles[0]);
+            }
+        }
+        
+        // 加载视频列表
+        function loadVideoList() {
+            const videoList = document.getElementById('videoList');
+            videoList.innerHTML = '';
+            
+            videoFiles.forEach(function(filename) {
+                const item = document.createElement('div');
+                item.className = 'video-item';
+                item.textContent = filename;
+                item.onclick = function() {
+                    loadVideo(filename);
+                };
+                videoList.appendChild(item);
+            });
+        }
+        
+        // 加载视频
+        function loadVideo(filename) {
+            const videoPlayer = document.getElementById('videoPlayer');
+            videoPlayer.src = `/feedback-editor/video/${processId}/${filename}`;
+            
+            // 更新活动状态
+            document.querySelectorAll('.video-item').forEach(item => {
+                item.classList.remove('active');
+                if (item.textContent === filename) {
+                    item.classList.add('active');
+                }
+            });
+            
+            updateStatus(`已加载视频: ${filename}`);
+        }
+        
+        // 加载文件列表
+        function loadFileList() {
+            const fileList = document.getElementById('fileList');
+            fileList.innerHTML = '';
+            
+            const files = currentTab === 'code' ? codeFiles : scriptFiles;
+            
+            files.forEach(function(filename) {
+                const item = document.createElement('div');
+                item.className = 'file-item';
+                item.textContent = filename;
+                item.onclick = function() {
+                    loadFile(filename);
+                };
+                fileList.appendChild(item);
+            });
+        }
+        
+        // 加载文件内容
+        function loadFile(filename) {
+            if (hasUnsavedChanges) {
+                if (!confirm('当前文件有未保存的更改，是否继续？')) {
+                    return;
+                }
+            }
+            
+            showLoading();
+            
+            const endpoint = currentTab === 'code' ? 'code' : 'script';
+            
+            fetch(`/feedback-editor/${endpoint}/${processId}/${filename}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        currentFile = filename;
+                        currentFileContent = data.content;
+                        document.getElementById('editorTextarea').value = data.content;
+                        document.getElementById('currentFile').textContent = filename;
+                        hasUnsavedChanges = false;
+                        updateFileStatus('已保存');
+                        
+                        // 更新活动状态
+                        document.querySelectorAll('.file-item').forEach(item => {
+                            item.classList.remove('active');
+                            if (item.textContent === filename) {
+                                item.classList.add('active');
+                            }
+                        });
+                        
+                        updateStatus(`已加载文件: ${filename}`);
+                    } else {
+                        showError(data.error);
+                    }
+                })
+                .catch(error => {
+                    showError('加载文件失败: ' + error.message);
+                })
+                .finally(() => {
+                    hideLoading();
+                });
+        }
+        
+        // 保存当前文件
+        function saveCurrentFile() {
+            if (!currentFile) {
+                showError('请先选择一个文件');
+                return;
+            }
+            
+            const content = document.getElementById('editorTextarea').value;
+            const endpoint = currentTab === 'code' ? 'save-code' : 'save-script';
+            
+            showLoading();
+            
+            fetch(`/feedback-editor/${endpoint}/${processId}/${currentFile}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ content: content })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    currentFileContent = content;
+                    hasUnsavedChanges = false;
+                    updateFileStatus('已保存');
+                    updateStatus(`文件已保存: ${currentFile}`);
+                    showSuccess(data.message);
+                } else {
+                    showError(data.error);
+                }
+            })
+            .catch(error => {
+                showError('保存文件失败: ' + error.message);
+            })
+            .finally(() => {
+                hideLoading();
+            });
+        }
+        
+        // 切换标签页
+        function switchTab(tab) {
+            if (hasUnsavedChanges) {
+                if (!confirm('当前文件有未保存的更改，是否继续？')) {
+                    return;
+                }
+            }
+            
+            currentTab = tab;
+            currentFile = null;
+            currentFileContent = '';
+            hasUnsavedChanges = false;
+            
+            document.getElementById('editorTextarea').value = '';
+            document.getElementById('currentFile').textContent = '未选择文件';
+            updateFileStatus('');
+            
+            // 更新标签页状态
+            document.querySelectorAll('.editor-tab').forEach(tabElement => {
+                tabElement.classList.remove('active');
+                if (tabElement.textContent.includes(tab === 'code' ? '代码' : '讲稿')) {
+                    tabElement.classList.add('active');
+                }
+            });
+            
+            loadFileList();
+            updateStatus(`已切换到${tab === 'code' ? '代码' : '讲稿'}编辑模式`);
+        }
+        
+        // 优化代码
+        function optimizeCode() {
+            if (!currentFile || currentTab !== 'code') {
+                showError('请先选择一个代码文件');
+                return;
+            }
+            
+            const request = prompt('请输入优化要求：');
+            if (!request) return;
+            
+            const code = document.getElementById('editorTextarea').value;
+            
+            showLoading();
+            
+            fetch('/feedback-editor/optimize-code', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ 
+                    code: code,
+                    request: request 
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById('editorTextarea').value = data.optimized_code;
+                    hasUnsavedChanges = true;
+                    updateFileStatus('未保存');
+                    updateStatus('代码优化完成');
+                    showSuccess(data.message);
+                } else {
+                    showError(data.error);
+                }
+            })
+            .catch(error => {
+                showError('优化代码失败: ' + error.message);
+            })
+            .finally(() => {
+                hideLoading();
+            });
+        }
+        
+        // 创建新文件
+        function createNewFile() {
+            const lessonTitle = prompt('请输入文件名（不包含扩展名）：');
+            if (!lessonTitle) return;
+            
+            const content = prompt('请输入文件内容：') || '';
+            const endpoint = currentTab === 'code' ? 'create-code' : 'create-script';
+            
+            showLoading();
+            
+            fetch(`/feedback-editor/${endpoint}/${processId}/${lessonTitle}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ content: content })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // 更新文件列表
+                    if (currentTab === 'code') {
+                        codeFiles.push(data.filename);
+                    } else {
+                        scriptFiles.push(data.filename);
+                    }
+                    loadFileList();
+                    updateStatus(`文件创建成功: ${data.filename}`);
+                    showSuccess(data.message);
+                } else {
+                    showError(data.error);
+                }
+            })
+            .catch(error => {
+                showError('创建文件失败: ' + error.message);
+            })
+            .finally(() => {
+                hideLoading();
+            });
+        }
+        
+        // 提交反馈
+        function submitFeedback() {
+            const feedback = document.getElementById('feedbackInput').value;
+            if (!feedback.trim()) {
+                showError('请输入反馈内容');
+                return;
+            }
+            
+            showLoading();
+            
+            fetch('/feedback-editor/multimodal-feedback', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ 
+                    feedback: feedback,
+                    screenshot: '' // 可以扩展为包含截图
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showModal('反馈处理结果', data.suggestions);
+                    updateStatus('反馈已提交');
+                } else {
+                    showError(data.error);
+                }
+            })
+            .catch(error => {
+                showError('提交反馈失败: ' + error.message);
+            })
+            .finally(() => {
+                hideLoading();
+            });
+        }
+        
+        // 完成编辑
+        function finishEditing() {
+            if (hasUnsavedChanges) {
+                if (!confirm('当前文件有未保存的更改，是否先保存？')) {
+                    return;
+                }
+                saveCurrentFile();
+            }
+            
+            if (confirm('确定完成编辑并继续处理流程吗？')) {
+                showLoading();
+                
+                fetch(`/feedback-editor/finish/${processId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({})
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showSuccess('编辑完成，处理流程将继续');
+                        setTimeout(() => {
+                            window.parent.postMessage({ type: 'editor-finished', processId: processId }, '*');
+                        }, 2000);
+                    } else {
+                        showError(data.error);
+                    }
+                })
+                .catch(error => {
+                    showError('完成编辑失败: ' + error.message);
+                })
+                .finally(() => {
+                    hideLoading();
+                });
+            }
+        }
+        
+        // 关闭编辑器
+        function closeEditor() {
+            if (hasUnsavedChanges) {
+                if (!confirm('当前文件有未保存的更改，确定关闭吗？')) {
+                    return;
+                }
+            }
+            
+            window.parent.postMessage({ type: 'editor-closed' }, '*');
+        }
+        
+        // 截图反馈
+        function takeScreenshot() {
+            // 这里可以实现截图功能
+            showInfo('截图功能待实现');
+        }
+        
+        // 工具函数
+        function updateStatus(message) {
+            document.getElementById('statusBar').textContent = message;
+        }
+        
+        function updateFileStatus(status) {
+            document.getElementById('fileStatus').textContent = status;
+        }
+        
+        function showLoading() {
+            document.getElementById('loading').style.display = 'block';
+        }
+        
+        function hideLoading() {
+            document.getElementById('loading').style.display = 'none';
+        }
+        
+        function showError(message) {
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'error-message';
+            errorDiv.textContent = message;
+            document.body.appendChild(errorDiv);
+            
+            setTimeout(() => {
+                errorDiv.remove();
+            }, 5000);
+        }
+        
+        function showSuccess(message) {
+            const successDiv = document.createElement('div');
+            successDiv.className = 'success-message';
+            successDiv.textContent = message;
+            document.body.appendChild(successDiv);
+            
+            setTimeout(() => {
+                successDiv.remove();
+            }, 3000);
+        }
+        
+        function showInfo(message) {
+            alert(message);
+        }
+        
+        function showModal(title, content) {
+            document.getElementById('modalContent').innerHTML = `
+                <h3>${title}</h3>
+                <div style="white-space: pre-wrap; max-height: 400px; overflow-y: auto;">${content}</div>
+            `;
+            document.getElementById('modal').style.display = 'block';
+        }
+        
+        function closeModal() {
+            document.getElementById('modal').style.display = 'none';
+        }
+        
+        // 监听来自父页面的消息
+        window.addEventListener('message', function(event) {
+            if (event.data.type === 'finish-editing') {
+                // 父页面请求完成编辑
+                finishEditing();
+            }
+        });
+        
+        // 防止意外关闭
+        window.addEventListener('beforeunload', function(e) {
+            if (hasUnsavedChanges) {
+                e.preventDefault();
+                e.returnValue = '';
+            }
+        });
+    </script>
+</body>
+</html> 

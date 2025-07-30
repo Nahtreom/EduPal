@@ -1,11 +1,49 @@
+# 忽略所有在models目录下的内容
+models/
+
+# Python 缓存
+__pycache__/
+*.pyc
+*.pyo
+
 # 忽略特定目录
 miniconda3/
-__pycache__/
 __MACOSX/
+
+# 虚拟环境
+.venv
+venv/
+env/
+
+# IDE 配置文件
+.idea/
+.vscode/
+
+# 系统文件
+.DS_Store
 
 # MinerU/
 Paper2Video/outputs/
 Paper2Video/__pycache__/
+
+# 临时文件
+temp/
+*.tmp
+*.log
+
+# IDE 相关
+*.swp
+*.swo
+
+# 系统文件
+.DS_Store
+Thumbs.db
+
+# 日志和输出文件
+*.log
+outputs/
+
+
 
 # 也可以使用通配符
 **/__pycache__/
@@ -14,17 +52,3 @@ Paper2Video/__pycache__/
 **/*.pyd
 .Python
 *.so
-# 临时文件
-temp/
-*.tmp
-*.log
-
-# IDE 相关
-.vscode/
-.idea/
-*.swp
-*.swo
-
-# 系统文件
-.DS_Store
-Thumbs.db

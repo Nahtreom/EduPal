@@ -1,4 +1,4 @@
-# create_speech_package.py
+# create_speech_package_with_logo.py
 import os
 import sys
 import argparse

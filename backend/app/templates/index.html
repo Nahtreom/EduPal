@@ -1,0 +1,844 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EDUPAL</title>
+    <!-- <link rel="icon" type="image/png" href="{{ url_for('static', filename='template_images/EDUPAL_logo.png') }}"> -->
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='template_images/EDUPAL_logo.png') }}?v=2">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        /* 进一步缩小步骤框的大小 */
+        .step-item {
+            padding: 0.5px;
+            margin: 0.25px;
+            border-radius: 0.5px;
+            background-color: #c0c0c0;
+            display: flex;
+            align-items: center;
+        }
+        .step-icon {
+            font-size: 10px;
+            margin-right: 2px;
+        }
+        .step-text {
+            font-size: 6px;
+        }
+        .group-toggle span {
+            font-size: 8px;
+            transition: transform 0.2s ease;
+        }
+        .group-toggle span:hover {
+            transform: scale(1.2);
+        }
+        
+        /* 控制页面宽度 */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .steps-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 2px;
+            max-width: 100%;
+            overflow: hidden;
+        }
+        
+        .overall-progress {
+            margin: 10px 0;
+        }
+        
+        .upload-success-actions {
+            max-width: 100%;
+            padding: 15px;
+        }
+        
+        /* 实时日志样式调整 */
+        .log-content {
+            text-align: left;
+            padding: 10px;
+        }
+        
+        .log-item {
+            text-align: left;
+            margin: 2px 0;
+        }
+        
+        .log-message {
+            text-align: left;
+        }
+        
+        /* 智能体编辑模态框样式 */
+        .ai-edit-modal {
+            max-width: 90%;
+            width: 1200px;
+            max-height: 90vh;
+            background-color: #f8f9fa; /* 浅色背景 */
+            color: #333; /* 深色文本 */
+        }
+        
+        .ai-edit-content {
+            padding: 20px;
+            color: #333; /* 深色文本 */
+        }
+        
+        .ai-edit-content h4 {
+            color: #333; /* 深色标题 */
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+        
+        .ai-edit-content p {
+            color: #666; /* 稍浅的深色文本 */
+        }
+        
+        .ai-edit-label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333; /* 深色标签 */
+            font-weight: 600;
+        }
+        
+        .ai-edit-textarea {
+            width: 100%;
+            min-height: 100px;
+            padding: 12px;
+            border: 1px solid #ddd; /* 浅色边框 */
+            border-radius: 6px;
+            background-color: #fff; /* 白色背景 */
+            color: #333; /* 深色文本 */
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            font-size: 14px;
+            line-height: 1.5;
+            resize: vertical;
+            margin-bottom: 15px;
+        }
+        
+        .ai-edit-textarea:focus {
+            outline: none;
+            border-color: #007bff;
+            box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+        }
+        
+        .ai-edit-actions {
+            text-align: right;
+            margin-bottom: 20px;
+        }
+        
+        .ai-edit-loading {
+            text-align: center;
+            padding: 40px 20px;
+            color: #666; /* 深色加载文本 */
+        }
+        
+        .code-comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 20px 0;
+        }
+        
+        .code-section h5 {
+            color: #333; /* 深色标题 */
+            margin-bottom: 10px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        
+        .code-preview {
+            background-color: #f8f9fa; /* 浅色背景 */
+            border: 1px solid #ddd; /* 浅色边框 */
+            border-radius: 6px;
+            padding: 15px;
+            color: #333; /* 深色代码文本 */
+            font-family: 'Courier New', Monaco, monospace;
+            font-size: 12px;
+            line-height: 1.4;
+            max-height: 300px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        
+        .ai-edit-result-actions {
+            text-align: center;
+            margin-top: 20px;
+        }
+        
+        .ai-edit-result-actions .btn {
+            margin: 0 5px;
+        }
+        
+        /* 智能体编辑模态框的关闭按钮样式 */
+        .ai-edit-modal .close-btn {
+            color: #666; /* 深色关闭按钮 */
+            background: transparent;
+        }
+        
+        .ai-edit-modal .close-btn:hover {
+            background: #e9ecef; /* 浅色悬停背景 */
+            color: #333; /* 深色悬停文本 */
+        }
+        
+        /* 确保模态框标题也是深色 */
+        .ai-edit-modal .modal-title {
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <!-- 顶部导航栏 -->
+    <nav class="top-navbar">
+        <div class="navbar-brand">
+            <img src="{{ url_for('static', filename='template_images/SAI-icon.png') }}" alt="SAI Logo" class="brand-logo">
+            <img src="{{ url_for('static', filename='assets/logo_test.png') }}" alt="Logo" class="brand-logo">
+            <div class="logo-text">EDUPAL</div>
+        </div>
+        <div class="navbar-right">
+            <a href="#" class="nav-link active">首页</a>
+            <a href="https://qianc62.github.io/" class="nav-link" target="_blank">联系我们</a>
+        </div>
+    </nav>
+
+    <!-- 顶部控制按钮 -->
+    <div class="top-controls">
+        <button class="control-btn" onclick="toggleSidebar()" title="切换内容列表" id="sidebarToggle">‹</button>
+    </div>
+
+    <div class="container">
+        <!-- 页面标题 -->
+        <header class="page-header">
+            <h1 class="main-title">EDUPAL</h1>
+            <p class="main-subtitle">AI驱动的教学智能体</p>
+        </header>
+
+        <!-- 最终视频显示区域 -->
+        <div class="final-video-container hidden" id="finalVideoContainer">
+            <div class="final-video-card">
+                <div class="video-header">
+                    <h3 class="video-title">🎬 教学视频生成完成</h3>
+                    <button class="close-btn" onclick="hideFinalVideo()">×</button>
+                </div>
+                <div class="video-content">
+                    <div class="video-player-wrapper">
+                        <video class="final-video-player" id="finalVideoPlayer" controls>
+                            <source id="finalVideoSource" src="" type="video/mp4">
+                            您的浏览器不支持视频播放。
+                        </video>
+                    </div>
+                    <div class="video-info">
+                        <div class="video-meta">
+                            <div class="video-filename" id="finalVideoFilename">视频文件名</div>
+                            <div class="video-stats" id="finalVideoStats">文件大小: --</div>
+                        </div>
+                        <div class="video-actions">
+                            <button class="btn btn-primary btn-large" id="downloadVideoBtn">
+                                <span class="button-icon">📥</span>
+                                <span class="button-text">下载教学视频</span><!-- 【新增/修改】 -->
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 主要内容区域 -->
+        <div class="main-content">
+            <!-- 搜索面板 -->
+            <div class="content-card">
+                <section class="search-section">
+                    <!-- 新式搜索输入框 -->
+                    <div class="modern-search-container">
+                        <div class="search-input-wrapper">
+                            <!-- 左侧功能按钮 -->
+                            <div class="search-function-menu">
+                                <button class="function-toggle-btn" id="functionToggle">
+                                    <span class="function-icon">+</span>
+                                </button>
+                            </div>
+                            
+                            <!-- 搜索输入框 -->
+                            <input type="text" class="modern-search-input" placeholder="请描述您的学习需求，AI教伴将帮您智能搜索" id="searchInput">
+                            <input type="file" id="pdfFileInput" accept=".pdf" style="display: none;" onchange="handlePdfUpload(event)">
+                            <!-- 【新增】这是文件夹输入框 -->
+                            <input type="file" id="folderInput" webkitdirectory multiple style="display: none;" onchange="handleFolderUpload(event)">
+
+                            <!-- 右侧搜索按钮 -->
+                            <div class="search-actions">
+                                <button class="action-btn search-btn" id="searchBtn">
+                                    <span class="action-icon">→</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- 下拉菜单移到这里 -->
+                        <div class="function-dropdown" id="functionDropdown">
+                            <div class="function-option active" data-type="web">
+                                <span class="option-icon">🌐</span>
+                                <span class="option-text">网页搜索</span>
+                            </div>
+                            <div class="function-option" data-type="paper">
+                                <span class="option-icon">📄</span>
+                                <span class="option-text">论文搜索</span>
+                            </div>
+                            <!-- <div class="function-option" onclick="switchToUploadMode()">
+                                <span class="option-icon">📝</span>
+                                <span class="option-text">上传单篇PDF</span>
+                            </div> -->
+                            <!-- 【新增】上传文件夹的选项 -->
+                            <!-- <div class="function-option" onclick="switchToFolderUploadMode()">
+                                <span class="option-icon">📁</span>
+                                <span class="option-text">上传论文集</span>  或者叫“上传文件夹” -->
+                            <!-- </div>  -->
+                            <div class="function-option" onclick="setUploadMode('single')">
+                                <span class="option-icon">📝</span>
+                                <span class="option-text">上传单篇PDF</span>
+                            </div>
+                            
+                            <!-- 上传论文集选项也调用新的模式切换函数 -->
+                            <div class="function-option" onclick="setUploadMode('folder')">
+                                <span class="option-icon">📁</span>
+                                <span class="option-text">上传论文集</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 加载状态 -->
+                    <div class="loading hidden" id="loading">正在分析您的需求</div>
+                    
+                    <!-- 上传成功后的处理按钮 -->
+                    <div class="upload-success-actions hidden" id="uploadSuccessActions">
+                        <div class="upload-success-info">
+                            <div class="success-icon">✅</div>
+                            <div class="success-message">
+                                <div class="success-title">PDF上传成功！</div>
+                                <div class="success-filename" id="successFilename"></div>
+                            </div>
+                        </div>
+                        
+                        <!-- 总体进度条和步骤可视化被移除，在点击开始处理后显示 -->
+                        
+                        <!-- 处理设置选项 -->
+                        <div class="processing-settings">
+                            <!-- 只保留输出格式 -->
+                            <div class="setting-group">
+                                <label class="setting-label">输出格式</label>
+                                <select class="setting-select" id="outputFormatSelect">
+                                    <option value="video" selected>视频 (Video)</option>
+                                    <option value="ppt">幻灯片 (PPT)</option>
+                                    <option value="markdown">文档 (Markdown)</option>
+                                </select>
+                            </div>
+                        </div>
+                        <!-- 【新增】一个用于放置视频专属设置按钮的容器，默认隐藏 -->
+                        <div id="videoSettingsContainer">
+                            <button class="btn btn-secondary" id="openVideoSettingsBtn">
+                                <!-- <span class="button-icon"></span> -->
+                                个性化设置
+                            </button>
+                        </div>  
+
+                        <button class="btn btn-primary btn-large start-processing-btn" id="startProcessingBtn">
+                            <span class="button-icon">🚀</span>
+                            开始处理
+                        </button>
+                    </div>
+                </section>
+
+                <!-- AI分析结果 -->
+                <div class="analysis-card hidden" id="analysisCard">
+                    <h3 class="card-title">教伴AI分析结果</h3>
+                    <div class="analysis-item">
+                        <label class="analysis-label">提炼的关键词</label>
+                        <div class="analysis-value" id="extractedKeyword"></div>
+                    </div>
+                    <div class="analysis-item">
+                        <label class="analysis-label">分析理由</label>
+                        <div class="analysis-text" id="analysisReasoning"></div>
+                    </div>
+                    <div class="analysis-item">
+                        <label class="analysis-label">搜索意图</label>
+                        <div class="analysis-text" id="searchIntent"></div>
+                    </div>
+                    <div class="action-buttons">
+                        <button class="btn btn-primary" id="confirmSearchBtn">确认搜索</button>
+                        <button class="btn btn-secondary" id="modifyKeywordBtn">修改关键词</button>
+                        <button class="btn btn-outline" id="cancelAnalysisBtn">重新输入</button>
+                    </div>
+                </div>
+
+                <!-- 搜索结果 -->
+                <div class="results-card hidden" id="resultsCard">
+                    <div class="results-header">
+                        <div class="results-header-info">
+                            <h3 class="card-title" id="resultsTitle">搜索结果</h3>
+                            <div class="results-meta" id="resultsMeta"></div>
+                        </div>
+                        <div class="results-header-actions">
+                            <button class="btn btn-secondary" id="smartFilterBtn" onclick="performSmartFilter()">智能筛选</button>
+                        </div>
+                    </div>
+                    <div id="resultsContainer"></div>
+                    
+                    <!-- 控制栏 -->
+                    <div class="controls-bar" id="controlsBar" style="display: none;">
+                        <div class="selection-info">
+                            已选择 <span id="selectedCount">0</span> 项
+                        </div>
+                        <div class="control-actions">
+                            <button class="btn btn-primary" id="crawlBtn" onclick="crawlSelected()">开始收集</button>
+                        </div>
+                    </div>
+
+                    <!-- 智能筛选结果 -->
+                    <div class="filter-result hidden" id="filterResult">
+                        <h4 style="margin-bottom: 12px; color: white; font-weight: 600;">教伴智能筛选推荐</h4>
+                        <div class="filter-reasoning" id="filterReasoning"></div>
+                        <div class="action-buttons">
+                            <button class="btn btn-primary" id="confirmFilterBtn">确认推荐</button>
+                            <button class="btn btn-outline" id="cancelFilterBtn">取消筛选</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 处理状态展示区域 -->
+            <div class="content-card processing-status-card hidden" id="processingStatusCard">
+                <div class="processing-status-header">
+                    <h3 class="card-title">论文处理进度</h3>
+                    <button class="minimize-btn" onclick="minimizeProcessingStatus()" title="最小化">−</button>
+                </div>
+                
+                <div class="processing-status-content" id="processingStatusContent">
+                    <!-- 总体进度条 - 从上方移动到这里 -->
+                    <div class="overall-progress">
+                        <div class="progress-header">
+                            <div class="progress-title">该步骤进度</div>
+                            <div style="display: flex; align-items: center;">
+                                <div class="progress-percentage" id="progressPercentage">0%</div>
+                                <button class="btn btn-outline btn-sm" onclick="cancelProcessing()" id="cancelBtn" style="margin-left: 10px; padding: 2px 8px; font-size: 12px;">取消</button>
+                            </div>
+                        </div>
+                        <div class="progress-bar-container">
+                            <div class="progress-bar" id="progressBar" style="width: 0%"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- 步骤可视化 - 从上方移动到这里 -->
+                    <div class="steps-container">
+                        <div class="step-item" data-step="1">
+                            <div class="step-icon">📄</div>
+                            <div class="step-text">论文解析者</div>
+                        </div>
+                        <div class="step-item" data-step="2">
+                            <div class="step-icon">🎬</div>
+                            <div class="step-text">内容生成员</div>
+                        </div>
+                        <div class="step-item" data-step="3">
+                            <div class="step-icon">📝</div>
+                            <div class="step-text">交互编辑者</div>
+                        </div>
+                        <div class="step-item" data-step="4">
+                            <div class="step-icon">🎥</div>
+                            <div class="step-text">视频预览员</div>
+                        </div>
+                        <div class="step-item" data-step="5">
+                            <div class="step-icon">💬</div>
+                            <div class="step-text">反馈编辑者</div>
+                        </div>
+                        <div class="step-item" data-step="6">
+                            <div class="step-icon">🎵</div>
+                            <div class="step-text">语音合成员</div>
+                        </div>
+                        <div class="step-item" data-step="7">
+                            <div class="step-icon">🔄</div>
+                            <div class="step-text">音视频对齐者</div>
+                        </div>
+                        <div class="step-item" data-step="8">
+                            <div class="step-icon">🎬</div>
+                            <div class="step-text">视频渲染员</div>
+                        </div>
+                        <div class="step-item" data-step="9">
+                            <div class="step-icon">🎦</div>
+                            <div class="step-text">最终合并者</div>
+                        </div>
+                    </div>
+                    
+                    <!-- 处理中的任务列表 -->
+                    <div class="active-processing" id="activeProcessing">
+                        <!-- 动态内容 -->
+                    </div>
+                    
+                    <!-- 大型视频预览按钮 -->
+                    <div class="preview-button-container hidden" id="previewButtonContainer">
+                        <button class="btn btn-large btn-primary" id="enterPreviewBtn" onclick="openVideoPreview()">
+                            <span class="button-icon">🎬</span>
+                            进入视频预览
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Web版交互编辑器 -->
+            <div class="content-card editor-card hidden" id="editorCard">
+                <div class="editor-header">
+                    <h3 class="card-title">📝 交互式文件编辑器</h3>
+                    <div class="editor-controls">
+                        <button class="btn btn-secondary" id="refreshFilesBtn" onclick="refreshEditorFiles()">刷新文件</button>
+                        <button class="btn btn-outline" id="closeEditorBtn" onclick="closeEditor()">关闭编辑器</button>
+                    </div>
+                </div>
+                
+                <div class="editor-content">
+                    <!-- 左侧文件列表 -->
+                    <div class="editor-sidebar">
+                        <div class="sidebar-header">
+                            <h4>📁 文件管理</h4>
+                            <div class="file-search">
+                                <input type="text" id="fileSearchInput" placeholder="搜索文件..." onkeyup="searchEditorFiles()">
+                            </div>
+                        </div>
+                        
+                        <!-- Code文件分组 -->
+                        <div class="file-group">
+                            <div class="group-header">
+                                <div class="group-title">
+                                    <span class="group-icon">🐍</span>
+                                    <span class="group-name">Python代码</span>
+                                    <span class="group-count" id="codeFileCount">0</span>
+                                </div>
+                                <button class="group-toggle" id="codeToggle" onclick="toggleFileGroup('code')">
+                                    <span>−</span>
+                                </button>
+                            </div>
+                            <div class="file-list" id="codeFileList">
+                                <!-- Code文件列表将在这里动态生成 -->
+                            </div>
+                        </div>
+                        
+                        <!-- Speech文件分组 -->
+                        <div class="file-group">
+                            <div class="group-header">
+                                <div class="group-title">
+                                    <span class="group-icon">📝</span>
+                                    <span class="group-name">讲稿文本</span>
+                                    <span class="group-count" id="speechFileCount">0</span>
+                                </div>
+                                <button class="group-toggle" id="speechToggle" onclick="toggleFileGroup('speech')">
+                                    <span>−</span>
+                                </button>
+                            </div>
+                            <div class="file-list" id="speechFileList">
+                                <!-- Speech文件列表将在这里动态生成 -->
+                            </div>
+                        </div>
+                        
+                        <!-- Video Preview文件分组 -->
+                        <div class="file-group">
+                            <div class="group-header">
+                                <div class="group-title">
+                                    <span class="group-icon">🎬</span>
+                                    <span class="group-name">视频预览</span>
+                                    <span class="group-count" id="videoFileCount">0</span>
+                                </div>
+                                <button class="group-toggle" id="videoToggle" onclick="toggleFileGroup('video')">
+                                    <span>−</span>
+                                </button>
+                            </div>
+                            <div class="file-list" id="videoFileList">
+                                <!-- Video文件列表将在这里动态生成 -->
+                            </div>
+                        </div>
+                        
+                        <!-- 背景图上传区域 -->
+                        <div class="background-upload">
+                            <h5>🖼️ 背景图设置</h5>
+                            <div class="upload-area">
+                                <input type="file" id="backgroundFileInput" accept="image/*" style="display: none;" onchange="handleBackgroundUpload(event)">
+                                <button class="btn btn-outline upload-btn" onclick="document.getElementById('backgroundFileInput').click()">
+                                    选择背景图
+                                </button>
+                                <div class="upload-info" id="backgroundUploadInfo"></div>
+                                <button class="btn btn-primary apply-bg-btn hidden" id="applyBackgroundBtn" onclick="applyBackgroundToCode()">
+                                    应用到所有代码
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 右侧编辑区域 -->
+                    <div class="editor-main">
+                        <div class="editor-tabs">
+                            <div class="tab-list" id="editorTabs">
+                                <!-- 编辑器标签将在这里动态生成 -->
+                            </div>
+                        </div>
+                        
+                        <div class="editor-workspace" id="editorWorkspace">
+                            <!-- 欢迎界面 -->
+                            <div class="welcome-screen" id="welcomeScreen">
+                                <div class="welcome-content">
+                                    <div class="welcome-icon">🚀</div>
+                                    <h3>欢迎使用交互式编辑器</h3>
+                                    <p>选择左侧文件列表中的文件开始编辑</p>
+                                    <div class="feature-list">
+                                        <div class="feature-item">
+                                            <span class="feature-icon">📝</span>
+                                            <span>在线编辑Python代码和讲稿文本</span>
+                                        </div>
+                                        <div class="feature-item">
+                                            <span class="feature-icon">🖼️</span>
+                                            <span>为动画添加自定义背景图</span>
+                                        </div>
+                                        <div class="feature-item">
+                                            <span class="feature-icon">💾</span>
+                                            <span>实时保存，自动备份</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- 编辑器容器 -->
+                            <div class="editor-container hidden" id="editorContainer">
+                                <div class="editor-toolbar">
+                                    <div class="file-info">
+                                        <span class="file-name" id="currentFileName">未选择文件</span>
+                                        <span class="file-stats" id="currentFileStats"></span>
+                                    </div>
+                                    <div class="editor-actions">
+                                        <button class="btn btn-outline" id="undoBtn" onclick="undoChanges()" disabled>撤销</button>
+                                        <button class="btn btn-secondary" id="aiEditBtn" onclick="openAiEditDialog()" disabled>🤖 智能体编辑</button>
+                                        <button class="btn btn-primary" id="saveBtn" onclick="saveCurrentFile()" disabled>保存</button>
+                                    </div>
+                                </div>
+                                
+                                <div class="code-editor">
+                                    <textarea id="codeEditor" class="code-textarea" spellcheck="false"></textarea>
+                                </div>
+                                
+                                <div class="editor-status">
+                                    <div class="status-info" id="editorStatus">就绪</div>
+                                    <div class="cursor-info" id="cursorInfo">行 1, 列 1</div>
+                                </div>
+                            </div>
+                            
+                            <!-- 视频播放器容器 -->
+                            <div class="video-container hidden" id="videoContainer">
+                                <div class="video-toolbar">
+                                    <div class="video-info">
+                                        <span class="video-name" id="currentVideoName">未选择视频</span>
+                                        <span class="video-stats" id="currentVideoStats"></span>
+                                    </div>
+                                    <div class="video-actions">
+                                        <button class="btn btn-outline" id="fullscreenBtn" onclick="toggleFullscreen()">全屏</button>
+                                        <button class="btn btn-secondary" id="editRelatedBtn" onclick="editRelatedFiles()" disabled>编辑相关文件</button>
+                                    </div>
+                                </div>
+                                
+                                <div class="video-player-wrapper">
+                                    <video class="video-player" id="videoPlayer" controls>
+                                        <source id="videoSource" src="" type="video/mp4">
+                                        您的浏览器不支持视频播放。
+                                    </video>
+                                </div>
+                                
+                                <div class="video-related-files" id="videoRelatedFiles">
+                                    <h5>相关文件</h5>
+                                    <div class="related-files-list" id="relatedFilesList">
+                                        <!-- 相关文件列表将在这里动态生成 -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 侧边栏 -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h3 class="sidebar-title">学习资料库</h3>
+            <button class="sidebar-clear-btn" onclick="exitApplication()" title="清空所有内容">×</button>
+        </div>
+        <div id="contentSections">
+            <!-- 内容将在这里动态加载 -->
+        </div>
+    </aside>
+
+    <!-- 预览模态框 -->
+    <div class="modal-overlay hidden" id="previewModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title" id="modalTitle">内容预览</h3>
+                <button class="close-btn" onclick="closePreview()">×</button>
+            </div>
+            <div class="modal-content">
+                <iframe class="modal-iframe" id="previewIframe" src=""></iframe>
+            </div>
+        </div>
+    </div>
+
+    <!-- 反馈编辑器模态框 -->
+    <div class="modal-overlay hidden" id="feedbackEditorModal">
+        <div class="modal feedback-editor-modal">
+            <div class="modal-header">
+                <h3 class="modal-title">💬 反馈编辑器</h3>
+                <div class="modal-header-actions">
+                    <button class="btn btn-success" id="finishEditingBtn" onclick="finishFeedbackEditing()">
+                        ✅ 完成编辑
+                    </button>
+                    <button class="close-btn" onclick="closeFeedbackEditor()">×</button>
+                </div>
+            </div>
+            <div class="modal-content">
+                <div class="editor-loading" id="editorLoading">
+                    <div class="loading-spinner"></div>
+                    <p>正在加载反馈编辑器...</p>
+                </div>
+                <iframe class="modal-iframe feedback-editor-iframe" id="feedbackEditorIframe" src=""></iframe>
+            </div>
+        </div>
+    </div>
+
+    <!-- 智能体编辑模态框 -->
+    <div class="modal-overlay hidden" id="aiEditModal">
+        <div class="modal ai-edit-modal">
+            <div class="modal-header">
+                <h3 class="modal-title">🤖 智能体编辑器</h3>
+                <button class="close-btn" onclick="closeAiEditDialog()">×</button>
+            </div>
+            <div class="modal-content">
+                <div class="ai-edit-content">
+                    <div class="ai-edit-request">
+                        <label for="editRequestInput" class="ai-edit-label">请输入你的修改需求：</label>
+                        <textarea id="editRequestInput" class="ai-edit-textarea" placeholder="例如：将背景色改为蓝色，增加注释，优化代码结构等..." rows="4"></textarea>
+                        <div class="ai-edit-actions">
+                            <button class="btn btn-primary" id="submitEditBtn" onclick="submitAiEdit()">🚀 开始编辑</button>
+                            <button class="btn btn-outline" onclick="closeAiEditDialog()">取消</button>
+                        </div>
+                    </div>
+                    
+                    <div class="ai-edit-loading hidden" id="aiEditLoading">
+                        <div class="loading-spinner"></div>
+                        <p>AI正在分析并编辑代码...</p>
+                    </div>
+                    
+                    <div class="ai-edit-result hidden" id="aiEditResult">
+                        <h4>修改结果预览：</h4>
+                        <div class="code-comparison">
+                            <div class="code-section">
+                                <h5>原始代码：</h5>
+                                <pre class="code-preview" id="originalCodePreview"></pre>
+                            </div>
+                            <div class="code-section">
+                                <h5>修改后代码：</h5>
+                                <pre class="code-preview" id="modifiedCodePreview"></pre>
+                            </div>
+                        </div>
+                        <div class="ai-edit-result-actions">
+                            <button class="btn btn-success" id="applyChangesBtn" onclick="applyAiChanges()">✅ 应用修改</button>
+                            <button class="btn btn-outline" onclick="discardAiChanges()">❌ 丢弃修改</button>
+                            <button class="btn btn-secondary" onclick="editAgain()">🔄 重新编辑</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- 【新增】视频高级设置悬浮窗 (Modal) -->
+    <div class="modal-overlay hidden" id="videoSettingsModalOverlay">
+        <div class="modal video-settings-modal">
+            <div class="modal-header">
+                <h3 class="modal-title">生成视频个性化设置</h3>
+                <button class="close-btn" onclick="closeVideoSettingsModal()">×</button>
+            </div>
+            <div class="modal-content">
+                <!-- 视频时长 -->
+                <div class="settings-section">
+                    <h4>视频时长</h4>
+                    <div class="setting-group">
+                        <select class="setting-select" id="modalVideoDurationSelect">
+                            <option value="short">短视频 (3-5分钟)</option>
+                            <option value="medium" selected>中等 (8-12分钟)</option>
+                            <option value="long">长视频 (15-20分钟)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- 人声选择 -->
+                <div class="settings-section">
+                    <h4>人声选择</h4>
+                    <div class="voice-options-grid">
+                        <!-- 预设人声 -->
+                        <div class="voice-option-item selected" data-voice="female" onclick="selectVoice(this, 'female')">
+                            <div class="voice-icon">👩</div>
+                            <div class="voice-name">优雅女声</div>
+                            <button class="preview-audio-btn" onclick="previewVoice('zero_shot_prompt.wav', event)">▶</button>
+                        </div>
+                        <div class="voice-option-item" data-voice="male" onclick="selectVoice(this, 'male')">
+                            <div class="voice-icon">👨</div>
+                            <div class="voice-name">磁性男声</div>
+                            <button class="preview-audio-btn" onclick="previewVoice('cross_lingual_prompt.wav', event)">▶</button>
+                        </div>
+                        <div class="voice-option-item" data-voice="child" onclick="selectVoice(this, 'child')">
+                            <div class="voice-icon">👦</div>
+                            <div class="voice-name">阳光童声</div>
+                            <button class="preview-audio-btn" onclick="previewVoice('child.mp3', event)">▶</button>
+                        </div>
+                        <!-- 上传人声 -->
+                        <div class="voice-option-item upload-item" onclick="document.getElementById('voiceUploadInput').click()">
+                            <div class="voice-icon">🎤</div>
+                            <div class="voice-name">上传10s音色</div>
+                                <!-- 【新增】一个专门用于显示上传结果的容器，并给它正确的ID -->
+                            <input type="file" id="voiceUploadInput" accept=".mp3,.wav" style="display: none;" onchange="handleVoiceUpload(event)">
+                        </div>
+                    </div>
+                    <!-- <div class="uploaded-preview-area hidden" id="voiceUploadPreviewArea"> -->
+                        <!-- JS会在这里填充内容 -->
+                    <!-- </div> -->
+                    <!-- 【修改】这个容器现在包含两个部分 -->
+                    <div class="upload-info" id="voiceUploadInfo">
+                        <div id="voiceFileUploadInfo"></div> <!-- 用于显示文件上传信息和播放按钮 -->
+                        <div id="voiceTextInputContainer" class="hidden"></div> <!-- 用于显示文本输入框，默认隐藏 -->
+                    </div>
+                </div>
+
+                <!-- 背景选择 -->
+                <div class="settings-section">
+                    <h4>背景选择</h4>
+                    <div class="background-gallery">
+                        <!-- 预设背景 -->
+                        <div class="background-option-item selected" onclick="selectBackground(this, 'background.png')">
+                            <img src="{{ url_for('static', filename='backgrounds/background.png') }}" alt="SJTU-SAI主题背景">
+                        </div>
+                        <div class="background-option-item" onclick="selectBackground(this, 'SJTU.png')">
+                            <img src="{{ url_for('static', filename='backgrounds/SJTU.png') }}" alt="SJTU背景">
+                        </div>
+                        <!-- 上传背景 -->
+                        <div class="background-option-item upload-item" onclick="document.getElementById('backgroundUploadInput').click()">
+                            <div class="upload-icon">+</div>
+                            <div class="upload-text">自定义</div>
+                             <input type="file" id="backgroundUploadInput" accept="image/*" style="display: none;" onchange="handleSettingsBackgroundUpload(event)">
+                             
+                        </div>
+                    </div>
+                     <div class="upload-info" id="backgroundUploadInfo"></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" onclick="saveVideoSettings()">确认设置</button>
+            </div>
+        </div>
+    </div>
+    <!-- 悬浮窗HTML结束 -->
+
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html> 

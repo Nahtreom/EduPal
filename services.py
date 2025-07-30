@@ -3622,10 +3622,12 @@ def run_folder_markdown_generation(process_id, base_name):
 
         cmd = [
             'python3',
-            '/home/EduAgent/Paper2Video/create_speech_package_multipaper.py',
+            '/home/EduAgent/Paper2Video/create_speech_package_logo_multipaper.py',
             input_sections_dir,
             images_dir,# <--- 【修改】使用我们动态找到的正确路径
-            output_md_path
+            output_md_path,
+            '--watermark',
+            '/home/EduAgent/backend/app/static/template_images/EDUPAL_logo.png'
         ]
 
         update_job_status(log_msg=f'⚙️ 执行命令: {" ".join(cmd)}') # 增加日志，方便调试
@@ -3740,10 +3742,12 @@ def run_markdown_generation(process_id, base_name):
 
         cmd = [
             'python3',
-            '/home/EduAgent/Paper2Video/create_speech_package.py',
+            '/home/EduAgent/Paper2Video/create_speech_package_with_logo.py',
             input_sections_dir,
             images_dir,# <--- 【修改】使用我们动态找到的正确路径
-            output_md_path
+            output_md_path,
+            '--watermark',
+            '/home/EduAgent/backend/app/static/template_images/EDUPAL_logo.png'
         ]
 
         update_job_status(log_msg=f'⚙️ 执行命令: {" ".join(cmd)}') # 增加日志，方便调试
