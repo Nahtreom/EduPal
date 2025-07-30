@@ -1247,4 +1247,4 @@ def serve_markdown_image(process_id, image_path):
         return jsonify({'error': f'获取图片失败: {str(e)}'}), 500
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5010, debug=False, use_reloader=False) 
+    app.run(host='0.0.0.0', port=5001, debug=False, use_reloader=False) 

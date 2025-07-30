@@ -1,13 +1,13 @@
 import re
 import sys
 
-def insert_ppt_background_code(file_path):
+def insert_ppt_background_code(file_path, bg_img_path):
     with open(file_path, "r", encoding="utf-8") as f:
         code = f.read()
 
     # 匹配 slide = prs.slides.add_slide(prs.slide_layouts[6])
     pattern = r'(slide\s*=\s*prs\.slides\.add_slide\(prs\.slide_layouts\[6\]\))'
-    bg_code = '''bg_img_path = "/home/EduAgent/pptcover/background.jpg"  #此行不要改动
+    bg_code = f'''bg_img_path = "{bg_img_path}"  #此行不要改动
 
 # 添加背景图（现在它确实在底层）
 slide.shapes.add_picture(
@@ -26,7 +26,7 @@ slide.shapes.add_picture(
         f.write(new_code)
 
 if __name__ == "__main__":
-    if len(sys.argv) != 2:
-        print("用法: python insert_ppt_bg.py <ppt代码文件路径>")
+    if len(sys.argv) != 3:
+        print("用法: python insert_ppt_bg.py <ppt代码文件路径> <背景图路径>")
         sys.exit(1)
-    insert_ppt_background_code(sys.argv[1])
+    insert_ppt_background_code(sys.argv[1], sys.argv[2])

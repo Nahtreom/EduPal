@@ -4,10 +4,21 @@ import glob
 import sys
 import shutil
 
-# python run_mineru_batch.py multi_paper_inputs01
+# python run_mineru_batch.py multi_paper_short_inputs01
 # 针对文件夹
 # 所有输出在outputs/multi_paper_inputs01/下
 # 精简输出在outputs_clean/multi_paper_inputs01/下
+
+
+# <--- 新增代码块 开始 --->
+# 通过此脚本的位置反向推断出项目的根目录
+# 假设此脚本位于 project_root/services/mineru/ 目录下，那么向上两级就是根目录
+try:
+    PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
+except NameError:
+    PROJECT_ROOT = os.getcwd() # 作为后备方案
+# <--- 新增代码块 结束 --->
+
 
 def main():
     # if len(sys.argv) != 2:
@@ -21,11 +32,20 @@ def main():
     #    os.path.normpath 会处理末尾的斜杠，确保 basename 能正确工作
     input_folder_basename = os.path.basename(os.path.normpath(input_folder))
 
-    # 2. 基于输入文件夹名称，构建新的、更具体的输出路径
-    #    例如: /path/to/cwd/outputs/multi_paper_inputs01
-    output_folder = os.path.join(os.getcwd(), "outputs", input_folder_basename)
-    #    例如: /path/to/cwd/outputs_clean/multi_paper_inputs01
-    clean_folder = os.path.join(os.getcwd(), "outputs_clean", input_folder_basename)
+    # # 2. 基于输入文件夹名称，构建新的、更具体的输出路径
+    # #    例如: /path/to/cwd/outputs/multi_paper_inputs01
+    # output_folder = os.path.join(os.getcwd(), "outputs", input_folder_basename)
+    # #    例如: /path/to/cwd/outputs_clean/multi_paper_inputs01
+    # clean_folder = os.path.join(os.getcwd(), "outputs_clean", input_folder_basename)
+
+    # <--- 修改代码块 开始 --->
+    # 2. 基于项目根目录和输入文件夹名称，构建新的、规范化的输出路径
+    #    例如: /path/to/project_root/outputs/mineru/outputs_raw/multi_paper_inputs01
+    output_folder = os.path.join(PROJECT_ROOT, "outputs", "mineru", "outputs_raw", input_folder_basename)
+    #    严格按照你的要求，构建精简输出路径
+    #    例如: /path/to/project_root/outputs/mineru/outputs_clean/multi_paper_inputs01
+    clean_folder = os.path.join(PROJECT_ROOT, "outputs", "mineru", "outputs_clean", input_folder_basename)
+    # <--- 修改代码块 结束 --->
 
 
     if not os.path.exists(input_folder):

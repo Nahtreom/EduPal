@@ -6,6 +6,16 @@ import sys
 import subprocess
 import argparse
 
+# <--- 新增代码块 开始 --->
+# 通过此脚本的位置反向推断出项目的根目录
+# 假设此脚本位于 project_root/ 目录下
+try:
+    PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
+except NameError:
+    PROJECT_ROOT = os.getcwd() # 作为后备方案
+# <--- 新增代码块 结束 --->
+
+
 def print_step(title):
     print(f"\n{'='*60}")
     print(f"🛠️  {title}")
@@ -59,16 +69,29 @@ def run_single_file_workflow(input_pdf_path, output_dir=None):
     # 获取文件名（不带扩展名）
     filename = os.path.basename(input_pdf_path).replace(".pdf", "")
 
-    # 构建用于 master_pipeline.py 的路径
-    md_path = os.path.join("..", "MinerU", "outputs_clean", filename, f"{filename}.md")
-    image_output_dir = os.path.join("..", "MinerU", "outputs_clean", filename, "images")
+    # # 构建用于 master_pipeline.py 的路径
+    # md_path = os.path.join("..", "MinerU", "outputs_clean", filename, f"{filename}.md")
+    # image_output_dir = os.path.join("..", "MinerU", "outputs_clean", filename, "images")
 
     # Step 1: Run MinerU
     print_step("Step 1️⃣ 运行 MinerU 提取结构化信息")
 
-    # 修复路径问题：将输入路径转换为相对于 MinerU 的路径
-    relative_pdf_path = os.path.relpath(input_pdf_path, start="MinerU")
-    run_command_live_output(["python3", "run_mineru.py", relative_pdf_path], cwd="MinerU")
+    # # 修复路径问题：将输入路径转换为相对于 MinerU 的路径
+    # relative_pdf_path = os.path.relpath(input_pdf_path, start="MinerU")
+    # run_command_live_output(["python3", "run_mineru.py", relative_pdf_path], cwd="MinerU")
+    # 1. 构建要执行脚本的绝对路径
+    #    假设 run_mineru.py 位于 project_root/services/mineru/ 目录下
+    mineru_script_path = os.path.join(PROJECT_ROOT, "services", "mineru", "run_mineru.py")
+    
+    # 2. 直接调用脚本，不再需要计算相对路径和使用 cwd
+    run_command_live_output(["python3", mineru_script_path, input_pdf_path])
+
+    # 3. 从新的、规范化的路径构建下一步所需的输入路径
+    #    单文件输出路径与批量不同，保持简单： outputs/mineru_clean/<文件名>
+    md_path = os.path.join(PROJECT_ROOT, "outputs", "mineru", "outputs_clean", filename, f"{filename}.md")
+    image_output_dir = os.path.join(PROJECT_ROOT, "outputs", "mineru", "outputs_clean", filename, "images")
+    # <--- 修改代码块 结束 --->
+
 
     # Step 2: Run master_pipeline.py
     print_step("Step 2️⃣ 执行 Paper2Video 的主处理流程")
@@ -78,7 +101,9 @@ def run_single_file_workflow(input_pdf_path, output_dir=None):
     if output_dir:
         command.extend(["--output-base-dir", output_dir])
         
-    run_command_live_output(command, cwd="Paper2Video")
+    # <--- 修改: 移除 cwd 参数 --->
+    run_command_live_output(command, cwd=os.path.join(PROJECT_ROOT, "Paper2Video"))
+    # run_command_live_output(command, cwd="Paper2Video")
     return "单篇论文" # 返回处理模式用于最终输出
 
 # --- 新增: 封装多篇论文处理流程 ---
@@ -87,16 +112,28 @@ def run_multi_file_workflow(input_dir_path, output_dir=None):
     # 获取目录名（不带路径）
     dir_name = os.path.basename(os.path.normpath(input_dir_path))
 
-    # 构建用于 multi_paper_master_pipeline.py 的输入路径
-    mineru_clean_output_dir = os.path.join("..", "MinerU", "outputs_clean", dir_name)
+    # # 构建用于 multi_paper_master_pipeline.py 的输入路径
+    # mineru_clean_output_dir = os.path.join("..", "MinerU", "outputs_clean", dir_name)
 
     # Step 1: Run MinerU (批量模式)
     print_step("Step 1️⃣ 运行 MinerU 批量提取结构化信息")
 
-    # 修复路径问题：将输入目录路径转换为相对于 MinerU 的路径
-    relative_input_dir = os.path.relpath(input_dir_path, start="MinerU")
-    # 使用新的批量处理脚本 run_mineru_batch.py
-    run_command_live_output(["python3", "run_mineru_batch.py", relative_input_dir], cwd="MinerU")
+    # # 修复路径问题：将输入目录路径转换为相对于 MinerU 的路径
+    # relative_input_dir = os.path.relpath(input_dir_path, start="MinerU")
+    # # 使用新的批量处理脚本 run_mineru_batch.py
+    # run_command_live_output(["python3", "run_mineru_batch.py", relative_input_dir], cwd="MinerU")
+
+    # 1. 构建要执行的批量脚本的绝对路径
+    #    假设 run_mineru_batch.py 位于 project_root/services/mineru/ 目录下
+    mineru_batch_script_path = os.path.join(PROJECT_ROOT, "services", "mineru", "run_mineru_batch.py")
+
+    # 2. 直接调用脚本，不再需要计算相对路径和使用 cwd
+    run_command_live_output(["python3", mineru_batch_script_path, input_dir_path])
+
+    # 3. 构建下一步所需的输入路径，精确匹配 run_mineru_batch.py 的新输出位置
+    mineru_clean_output_dir = os.path.join(PROJECT_ROOT, "outputs", "mineru", "outputs_clean", dir_name)
+    # <--- 修改代码块 结束 --->
+
 
     # Step 2: Run master_pipeline.py (批量模式)
     print_step("Step 2️⃣ 执行 Paper2Video 的批量主处理流程")
@@ -108,8 +145,9 @@ def run_multi_file_workflow(input_dir_path, output_dir=None):
     if output_dir:
         command.extend(["--output-base-dir", output_dir])
         
-    run_command_live_output(command, cwd="Paper2Video")
-    return "多篇论文批量" # 返回处理模式用于最终输出
+    # run_command_live_output(command, cwd="Paper2Video")
+    # <--- 修改: 移除 cwd 参数 --->
+    run_command_live_output(command, cwd=os.path.join(PROJECT_ROOT, "Paper2Video"))
 
 # --- 重构 原all_pipeline.py的main 函数作为调度器 ---
 def main(input_path, output_dir=None):

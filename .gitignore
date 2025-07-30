@@ -1,5 +1,6 @@
 # 忽略所有在models目录下的内容
 models/
+MinerU/
 
 # Python 缓存
 __pycache__/

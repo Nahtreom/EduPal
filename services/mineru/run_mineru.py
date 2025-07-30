@@ -35,9 +35,8 @@ def main():
 
     # <--- 修改代码块 开始 --->
     # 默认输出路径，现在基于计算出的项目根目录
-    output_path = os.path.join(PROJECT_ROOT, "outputs", "mineru_raw")
-    clean_base_path = os.path.join(PROJECT_ROOT, "outputs", "mineru_clean")
-    # <--- 修改代码块 结束 --->
+    output_path = os.path.join(PROJECT_ROOT, "outputs", "mineru", "outputs_raw")
+    clean_base_path = os.path.join(PROJECT_ROOT, "outputs", "mineru", "outputs_clean")
 
     os.makedirs(output_path, exist_ok=True)
 

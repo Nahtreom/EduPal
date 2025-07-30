@@ -1508,8 +1508,63 @@ def run_initial_processing(process_id, pdf_path, base_name):
                 except Exception as e:
                     update_job_status(log_msg=f'⚠️ 封面生成失败: {str(e)}，但不影响后续步骤')
                     subprocess.run(['echo', '封面生成失败失败失败'], check=True)
-                
 
+                # 插入自动应用背景图的逻辑
+                try:
+                    with processing_lock:
+                        job = processing_jobs[process_id]
+                        # 从 job_info 中获取之前存储的背景设置
+                        choice = job.get('background_choice', 'default')
+                        custom_path = job.get('custom_background_path')
+
+                    # code_dir 变量在之前的代码中已经定义
+                    background_to_apply = None
+
+                    # 检查是否需要应用背景
+                    if choice and choice != 'default':
+                        update_job_status(log_msg=f'🎨 检测到用户选择背景: {choice}，开始应用...')
+                        
+                        # 情况一：用户上传了自定义背景
+                        if choice == 'custom' and custom_path and os.path.exists(custom_path):
+                            filename = os.path.basename(custom_path)
+                            destination_path = os.path.join(code_dir, filename)
+                            
+                            update_job_status(log_msg=f'    -> 正在复制自定义背景: {filename} 到Code目录')
+                            shutil.copy2(custom_path, destination_path)
+                            background_to_apply = filename
+
+                        # 情况二：用户选择了预设背景 (例如 'SJTU.png')
+                        elif choice != 'custom':
+                            # 预设背景图存放在 static/backgrounds/
+                            preset_source_path = os.path.join('static', 'backgrounds', choice)
+                            if os.path.exists(preset_source_path):
+                                destination_path = os.path.join(code_dir, choice)
+                                update_job_status(log_msg=f'    -> 正在复制预设背景: {choice} 到Code目录')
+                                shutil.copy2(preset_source_path, destination_path)
+                                background_to_apply = choice
+                            else:
+                                update_job_status(log_msg=f'    ⚠️ 预设背景文件不存在: {preset_source_path}，跳过应用')
+                        
+                        # 如果成功复制了背景文件，则调用脚本应用它
+                        if background_to_apply:
+                            update_job_status(log_msg=f'    -> 调用脚本以应用背景: {background_to_apply}')
+                            # apply_background_to_code 是之前写好的函数，可以直接调用
+                            try:
+                                # 注意：apply_background_to_code 函数需要 process_id 和文件名
+                                apply_result = apply_background_to_code(process_id, background_to_apply)
+                                update_job_status(log_msg=f'    ✅ 背景应用完成: {apply_result.get("message", "无返回信息")}')
+                            except Exception as apply_error:
+                                update_job_status(log_msg=f'    ❌ 应用背景脚本时出错: {str(apply_error)}')
+                        else:
+                             update_job_status(log_msg='    -> 未能定位到有效背景文件，跳过应用。')
+
+                    else:
+                        update_job_status(log_msg='🎨 用户未指定特殊背景，使用默认背景。')
+
+                except Exception as e:
+                    update_job_status(log_msg=f'⚠️ 应用背景图时发生严重错误: {str(e)}，处理将继续但背景可能不会生效。')
+
+                
                 update_job_status(progress=80, step='🎥 Step 4.5: 开始预览PPT',
                                 log_msg='🎉 初始处理完成！开始生成预览PPT...',
                                 output_dir=output_dir,
@@ -1912,6 +1967,61 @@ def run_folder_processing(process_id, folder_path, base_name):
                 except Exception as e:
                     update_job_status(log_msg=f'⚠️ 封面生成失败: {str(e)}，但不影响后续步骤')
                     subprocess.run(['echo', '封面生成失败失败失败'], check=True)
+
+                # 自动应用背景图
+                try:
+                    with processing_lock:
+                        job = processing_jobs[process_id]
+                        # 从 job_info 中获取之前存储的背景设置
+                        choice = job.get('background_choice', 'default')
+                        custom_path = job.get('custom_background_path')
+
+                    # code_dir 变量在之前的代码中已经定义
+                    background_to_apply = None
+
+                    # 检查是否需要应用背景
+                    if choice and choice != 'default':
+                        update_job_status(log_msg=f'🎨 检测到用户选择背景: {choice}，开始应用...')
+                        
+                        # 情况一：用户上传了自定义背景
+                        if choice == 'custom' and custom_path and os.path.exists(custom_path):
+                            filename = os.path.basename(custom_path)
+                            destination_path = os.path.join(code_dir, filename)
+                            
+                            update_job_status(log_msg=f'    -> 正在复制自定义背景: {filename} 到Code目录')
+                            shutil.copy2(custom_path, destination_path)
+                            background_to_apply = filename
+
+                        # 情况二：用户选择了预设背景 (例如 'SJTU.png')
+                        elif choice != 'custom':
+                            # 预设背景图存放在 static/backgrounds/
+                            preset_source_path = os.path.join('static', 'backgrounds', choice)
+                            if os.path.exists(preset_source_path):
+                                destination_path = os.path.join(code_dir, choice)
+                                update_job_status(log_msg=f'    -> 正在复制预设背景: {choice} 到Code目录')
+                                shutil.copy2(preset_source_path, destination_path)
+                                background_to_apply = choice
+                            else:
+                                update_job_status(log_msg=f'    ⚠️ 预设背景文件不存在: {preset_source_path}，跳过应用')
+                        
+                        # 如果成功复制了背景文件，则调用脚本应用它
+                        if background_to_apply:
+                            update_job_status(log_msg=f'    -> 调用脚本以应用背景: {background_to_apply}')
+                            # apply_background_to_code 是之前写好函数，可以直接调用
+                            try:
+                                # 注意：apply_background_to_code 函数需要 process_id 和文件名
+                                apply_result = apply_background_to_code(process_id, background_to_apply)
+                                update_job_status(log_msg=f'    ✅ 背景应用完成: {apply_result.get("message", "无返回信息")}')
+                            except Exception as apply_error:
+                                update_job_status(log_msg=f'    ❌ 应用背景脚本时出错: {str(apply_error)}')
+                        else:
+                             update_job_status(log_msg='    -> 未能定位到有效背景文件，跳过应用。')
+
+                    else:
+                        update_job_status(log_msg='🎨 用户未指定特殊背景，使用默认背景。')
+
+                except Exception as e:
+                    update_job_status(log_msg=f'⚠️ 应用背景图时发生严重错误: {str(e)}，处理将继续但背景可能不会生效。')
                 
                 update_job_status(progress=80, step='🎥 Step 4.5: 开始预览PPT渲染',
                                 log_msg='🎉 初始处理完成！开始生成预览PPT...',
@@ -4021,7 +4131,7 @@ def apply_background_to_code(process_id, background_file):
         if chosen_format == 'video':
             command = ['python3', 'background.py', code_dir, background_file]
         elif chosen_format == 'ppt':
-            command = ['python3', 'replace_pptbackground.py', code_dir, background_file]
+            command = ['python3', 'background_ppt.py', code_dir, background_file]
         
         result = subprocess.run(
             command,
