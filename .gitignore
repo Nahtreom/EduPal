@@ -4,7 +4,8 @@ __pycache__/
 __MACOSX/
 
 # MinerU/
-
+Paper2Video/outputs/
+Paper2Video/__pycache__/
 
 # 也可以使用通配符
 **/__pycache__/
