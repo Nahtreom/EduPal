@@ -8,6 +8,7 @@ git clone 本项目后。
 对其他模型做同样的操作。
 ```
 
+```
 my_project/
 ├── backend/                  <-- 存放所有后端Flask代码
 │   ├── app/                  <-- Flask应用的核心代码
@@ -54,3 +55,4 @@ my_project/
 ├── docker-compose.yml        <-- 核心！用于一键启动所有服务(后端, 模型服务)
 ├── .gitignore                <-- 告诉Git哪些文件/文件夹不需要追踪
 └── README.md                 <-- 项目说明书，非常重要！
+```

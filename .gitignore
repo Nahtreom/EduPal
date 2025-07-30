@@ -41,6 +41,7 @@ Thumbs.db
 
 # 日志和输出文件
 *.log
+# 忽略所有输出文件
 outputs/
 
 

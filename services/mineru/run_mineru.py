@@ -3,6 +3,21 @@ import os
 import subprocess
 import shutil
 
+
+# <--- 新增代码块 开始 --->
+# 通过此脚本的位置反向推断出项目的根目录
+# 假设 run_mineru.py 位于 project_root/services/mineru/ 目录下
+# __file__ 是当前脚本的路径
+# os.path.dirname(__file__) 是当前脚本所在的目录
+# 两次 os.path.join(..., '..') 就能回到项目根目录
+try:
+    # 假设此脚本在 project_root/services/mineru/ 中
+    PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
+except NameError:
+    # 如果在交互式环境等特殊情况，__file__ 可能不存在，使用当前工作目录作为后备
+    PROJECT_ROOT = os.getcwd()
+# <--- 新增代码块 结束 --->
+
 def main():
     if len(sys.argv) != 2:
         print("用法: python run_mineru.py <待转换PDF路径>")
@@ -14,9 +29,15 @@ def main():
         print(f"❌ 输入文件 {input_path} 不存在")
         sys.exit(1)
 
-    # 默认输出路径
-    output_path = os.path.join(os.getcwd(), "outputs")
-    clean_base_path = os.path.join(os.getcwd(), "outputs_clean")
+    # # 默认输出路径
+    # output_path = os.path.join(os.getcwd(), "outputs")
+    # clean_base_path = os.path.join(os.getcwd(), "outputs_clean")
+
+    # <--- 修改代码块 开始 --->
+    # 默认输出路径，现在基于计算出的项目根目录
+    output_path = os.path.join(PROJECT_ROOT, "outputs", "mineru_raw")
+    clean_base_path = os.path.join(PROJECT_ROOT, "outputs", "mineru_clean")
+    # <--- 修改代码块 结束 --->
 
     os.makedirs(output_path, exist_ok=True)
 
