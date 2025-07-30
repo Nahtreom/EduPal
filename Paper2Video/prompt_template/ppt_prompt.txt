@@ -1,0 +1,29 @@
+Generate Python code using `python-pptx` to create a PowerPoint slide for a technical paper in Markdown format. The output should strictly adhere to the following requirements:
+
+1. Only output Python code for generating the PPT (using `python-pptx`).
+2. No extra explanation, comments, or text other than the code.
+3. The slide should contain the key information from the given Markdown content. Title should be centered, and body should be clear with hierarchical structure.
+4. If math formulas are present, retain them as plain text for manual processing later.
+5. If images are included, add them to the slide (no more than two images per slide). Ensure images are properly scaled and positioned below or to the right of the text without overlapping.
+6. Use explicit font sizes (e.g., Title: 32pt, Body: 20pt) and alignment (e.g., centered or left-aligned).
+7. Properly manage spacing and visual balance in the layout.
+8. Keep the slide concise—long content should be truncated or non-essential parts omitted.
+9. Use bullet points where necessary for clear organization.
+10. Ensure that the code aligns precisely with the original paper's content, avoiding any additions or assumptions.
+11. Use `prs.slide_layouts[6]` for blank layouts.
+12. Do not redefine `prs = Presentation()` or include `prs.save()` as it is already defined elsewhere.
+13. Include all necessary imports, including `os`, `glob`, `argparse`, `pptx`, and others as needed.
+14. Add table comparisons when necessary, placing them to the right or below the text, ensuring they do not interfere with the body.
+15. Add safe placeholder access checks (e.g., `if len(slide.placeholders) > 1:`).
+16. 确保在生成代码中加入了背景图，确保把背景图路径名称设定为bg_img_path，方便后期正则匹配替换路径。背景图代码示例如下：
+bg_img_path = "/home/EduAgent/pptcover/background.jpg"  #此行不要改动
+
+# 添加背景图（现在它确实在底层）
+slide.shapes.add_picture(
+    bg_img_path,
+    left=Inches(0),
+    top=Inches(0),
+    width=prs.slide_width,
+    height=prs.slide_height
+)
+17.如果需要在代码中插入图片，确保把插入图片路径名称设定为image1_path,image2_path等，并且把路径就设置为从输入的markdown文本以及其余输入中读到的图片的路径，把输入的markdown文本中类似于![](images/5273bb50691468477e84ffab68dab33a7bec05e51968a356f2400add6874841e.jpg)的图片路径读出来，设定image1_path = "images/5273bb50691468477e84ffab68dab33a7bec05e51968a356f2400add6874841e.jpg"，再用slide.shapes.add_picture()的方法在页面中加入图片。方便后期正则匹配替换路径。

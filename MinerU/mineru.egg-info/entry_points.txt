@@ -1,0 +1,4 @@
+[console_scripts]
+mineru = mineru.cli:client.main
+mineru-models-download = mineru.cli.models_download:download_models
+mineru-sglang-server = mineru.cli.vlm_sglang_server:main

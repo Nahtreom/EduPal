@@ -1,0 +1,1545 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>智能搜索</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            background: #ffffff;
+            color: #2d2d2d;
+            line-height: 1.6;
+            min-height: 100vh;
+            overflow-x: hidden;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .app-container {
+            min-height: 100vh;
+        }
+
+        .main-container {
+            flex: 1;
+            max-width: none;
+            padding: 20px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin-right: 300px;
+            transition: margin-right 0.3s ease;
+        }
+
+        .main-container.sidebar-collapsed {
+            margin-right: 0;
+        }
+
+        .search-section {
+            width: 100%;
+            max-width: 600px;
+        }
+
+        .main-title {
+            font-size: 32px;
+            font-weight: 400;
+            color: #2d2d2d;
+            margin-bottom: 40px;
+            letter-spacing: -0.01em;
+        }
+
+        .search-container {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .search-types {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+            justify-content: center;
+        }
+
+        .search-type-tab {
+            padding: 8px 16px;
+            background: #f5f5f5;
+            border: none;
+            border-radius: 20px;
+            font-size: 14px;
+            color: #666;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .search-type-tab.active {
+            background: #000;
+            color: #fff;
+        }
+
+        .search-type-tab:hover:not(.active) {
+            background: #ebebeb;
+        }
+
+        .arxiv-icon {
+            font-size: 10px;
+            font-weight: 700;
+            background: #b31b1b;
+            color: white;
+            padding: 2px 5px;
+            border-radius: 3px;
+            line-height: 1;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .search-type-tab.active .arxiv-icon {
+            background: rgba(255, 255, 255, 0.9);
+            color: #000;
+        }
+
+        .input-container {
+            position: relative;
+            background: #ffffff;
+            border: 1px solid #d1d5db;
+            border-radius: 24px;
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+            transition: all 0.2s ease;
+        }
+
+        .input-container:focus-within {
+            border-color: #000;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+        }
+
+        .search-input {
+            flex: 1;
+            border: none;
+            outline: none;
+            font-size: 16px;
+            background: transparent;
+            color: #2d2d2d;
+        }
+
+        .search-input::placeholder {
+            color: #9ca3af;
+        }
+
+        .input-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .action-btn {
+            width: 32px;
+            height: 32px;
+            border: none;
+            background: #f5f5f5;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s ease;
+            color: #666;
+        }
+
+        .action-btn:hover {
+            background: #ebebeb;
+        }
+
+        .search-btn {
+            background: #000;
+            color: #fff;
+        }
+
+        .search-btn:hover {
+            background: #2d2d2d;
+        }
+
+        .search-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px 20px;
+            color: #666;
+            font-size: 14px;
+        }
+
+        .results-section {
+            margin-top: 40px;
+            text-align: left;
+            width: 100%;
+        }
+
+        .results-header {
+            padding: 16px 0;
+            border-bottom: 1px solid #f0f0f0;
+            margin-bottom: 24px;
+        }
+
+        .results-title {
+            font-size: 20px;
+            font-weight: 500;
+            color: #2d2d2d;
+            margin-bottom: 4px;
+        }
+
+        .results-meta {
+            font-size: 13px;
+            color: #666;
+        }
+
+        .results-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .result-card {
+            padding: 16px 0;
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            will-change: transform;
+            transform: translateZ(0);
+        }
+
+        .result-card:last-child {
+            border-bottom: none;
+        }
+
+        .result-checkbox {
+            margin-top: 4px;
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
+
+        .result-content-wrapper {
+            flex: 1;
+        }
+
+        .result-title {
+            font-size: 18px;
+            font-weight: 500;
+            color: #1a73e8;
+            margin-bottom: 4px;
+            line-height: 1.3;
+            cursor: pointer;
+        }
+
+        .result-title:hover {
+            text-decoration: underline;
+        }
+
+        .result-url {
+            font-size: 13px;
+            color: #5f6368;
+            margin-bottom: 8px;
+        }
+
+        .result-url a {
+            color: #5f6368;
+            text-decoration: none;
+        }
+
+        .result-content, .result-abstract {
+            font-size: 14px;
+            color: #4d5156;
+            line-height: 1.58;
+        }
+
+        .error-card {
+            background: #fef7f0;
+            border: 1px solid #fbceb5;
+            color: #b85c00;
+            padding: 16px;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 14px;
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 60px 20px;
+            color: #666;
+        }
+
+        .no-results-title {
+            font-size: 18px;
+            font-weight: 400;
+            margin-bottom: 8px;
+            color: #2d2d2d;
+        }
+
+        .no-results-text {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .crawl-controls {
+            margin-top: 16px;
+            padding: 16px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid #e9ecef;
+        }
+
+        .crawl-info {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .crawl-actions {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .smart-filter-btn {
+            padding: 8px 16px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s ease;
+        }
+
+        .smart-filter-btn:hover {
+            background: #0056b3;
+        }
+
+        .smart-filter-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .crawl-btn {
+            padding: 8px 16px;
+            background: #000;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s ease;
+        }
+
+        .crawl-btn:hover {
+            background: #2d2d2d;
+        }
+
+        .crawl-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        /* 智能筛选结果样式 */
+        .smart-filter-result {
+            margin-top: 20px;
+            padding: 16px;
+            background: #f0f8ff;
+            border: 1px solid #b3d9ff;
+            border-radius: 8px;
+        }
+
+        .smart-filter-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .smart-filter-title {
+            font-size: 16px;
+            font-weight: 500;
+            color: #2d2d2d;
+        }
+
+        .smart-filter-reasoning {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 12px;
+            line-height: 1.5;
+        }
+
+        .smart-filter-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .confirm-btn {
+            padding: 8px 16px;
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s ease;
+        }
+
+        .confirm-btn:hover {
+            background: #1e7e34;
+        }
+
+        .cancel-btn {
+            padding: 8px 16px;
+            background: #6c757d;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s ease;
+        }
+
+        .cancel-btn:hover {
+            background: #545b62;
+        }
+
+        /* PDF预览器样式 */
+        .pdf-viewer-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+        }
+
+        .pdf-viewer {
+            background: white;
+            border-radius: 8px;
+            width: 90%;
+            height: 90%;
+            max-width: 1000px;
+            max-height: 800px;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .pdf-viewer-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid #e5e5e5;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #f8f9fa;
+            border-radius: 8px 8px 0 0;
+        }
+
+        .pdf-viewer-title {
+            font-size: 16px;
+            font-weight: 500;
+            color: #2d2d2d;
+            margin: 0;
+        }
+
+        .pdf-viewer-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #666;
+            padding: 0;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .pdf-viewer-close:hover {
+            color: #000;
+        }
+
+        .pdf-viewer-content {
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .pdf-viewer-iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        .pdf-sidebar {
+            width: 300px;
+            background: #f8f9fa;
+            border-left: 1px solid #e1e5e9;
+            overflow-y: auto;
+            position: fixed;
+            right: 0;
+            top: 0;
+            height: 100vh;
+            transition: width 0.3s ease, transform 0.3s ease;
+            z-index: 998;
+        }
+
+        .pdf-sidebar.collapsed {
+            transform: translateX(300px);
+        }
+
+        .pdf-list {
+            padding: 20px;
+            height: 100%;
+            animation: fadeInUp 0.3s ease-out;
+            will-change: transform, opacity;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .pdf-list-title {
+            font-size: 16px;
+            font-weight: 500;
+            margin-bottom: 16px;
+            color: #2d2d2d;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .content-section-title {
+            font-size: 14px;
+            font-weight: 500;
+            color: #666;
+            margin: 12px 0 8px 0;
+            padding: 8px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .content-section-title:first-child {
+            margin-top: 0;
+        }
+
+        .pdf-item {
+            padding: 12px 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .pdf-item:last-child {
+            border-bottom: none;
+        }
+
+        .pdf-item-content {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .pdf-item-title {
+            flex: 1;
+            font-size: 13px;
+            color: #2d2d2d;
+            line-height: 1.4;
+            word-break: break-word;
+            overflow: hidden;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+        }
+
+        .pdf-item-actions {
+            flex-shrink: 0;
+        }
+
+        .pdf-icon-btn {
+            width: 32px;
+            height: 32px;
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+
+        .pdf-icon-btn:hover {
+            background: #e9ecef;
+            border-color: #d3d3d3;
+            transform: scale(1.05);
+        }
+
+        .pdf-preview-btn {
+            padding: 6px 12px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: background 0.2s ease;
+            flex: 1;
+        }
+
+        .pdf-preview-btn:hover {
+            background: #0056b3;
+        }
+
+        .pdf-empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 300px;
+            color: #666;
+            text-align: center;
+        }
+
+        .pdf-empty-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+            opacity: 0.3;
+        }
+
+        .pdf-empty-text {
+            font-size: 14px;
+            color: #666;
+        }
+
+        /* 退出按钮样式 */
+        .exit-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 40px;
+            height: 40px;
+            background: #fff;
+            border: 1px solid #e1e5e9;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            color: #666;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            transition: all 0.2s ease;
+            z-index: 999;
+        }
+
+        .exit-btn:hover {
+            background: #f8f9fa;
+            border-color: #d1d5db;
+            color: #333;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .exit-btn:active {
+            transform: scale(0.95);
+        }
+
+        /* 侧栏切换箭头 */
+        .sidebar-toggle {
+            position: fixed;
+            top: 50%;
+            right: 300px;
+            transform: translateY(-50%);
+            width: 24px;
+            height: 40px;
+            background: #fff;
+            border: 1px solid #e1e5e9;
+            border-radius: 4px 0 0 4px;
+            border-right: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            color: #666;
+            box-shadow: -2px 0 8px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            z-index: 999;
+        }
+
+        .sidebar-toggle:hover {
+            background: #f8f9fa;
+            color: #333;
+            box-shadow: -4px 0 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .sidebar-toggle:active {
+            transform: translateY(-50%) scale(0.95);
+        }
+
+        .sidebar-toggle.collapsed:active {
+            transform: translateY(-50%) scale(0.95);
+        }
+
+        .sidebar-toggle.collapsed {
+            right: 0;
+            border-radius: 0 4px 4px 0;
+            border-right: 1px solid #e1e5e9;
+            border-left: none;
+            box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .sidebar-toggle.collapsed:hover {
+            box-shadow: 4px 0 12px rgba(0, 0, 0, 0.15);
+        }
+
+        @media (max-width: 768px) {
+            .main-container {
+                margin-right: 0;
+                padding: 16px;
+            }
+
+            .pdf-sidebar {
+                width: 100%;
+                height: 50vh;
+                border-left: none;
+                border-top: 1px solid #e1e5e9;
+                bottom: 0;
+                top: auto;
+                right: 0;
+                left: 0;
+                transform: translateY(100%);
+                transition: transform 0.3s ease;
+            }
+
+            .pdf-sidebar.collapsed {
+                transform: translateY(100%);
+            }
+
+            .pdf-sidebar:not(.collapsed) {
+                transform: translateY(0);
+            }
+
+            .main-title {
+                font-size: 28px;
+                margin-bottom: 32px;
+            }
+
+            .search-types {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .search-type-tab {
+                width: 200px;
+            }
+
+            .exit-btn {
+                top: 16px;
+                right: 16px;
+                width: 36px;
+                height: 36px;
+                font-size: 16px;
+            }
+
+            .sidebar-toggle {
+                top: auto;
+                bottom: 60%;
+                right: 280px;
+                transform: translateY(50%);
+                width: 20px;
+                height: 36px;
+                font-size: 14px;
+            }
+
+            .sidebar-toggle.collapsed {
+                right: 0;
+                transform: translateY(50%);
+            }
+
+            .sidebar-toggle:active {
+                transform: translateY(50%) scale(0.95);
+            }
+
+            .sidebar-toggle.collapsed:active {
+                transform: translateY(50%) scale(0.95);
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 侧栏切换箭头 -->
+    <button class="sidebar-toggle" onclick="toggleSidebar()" title="切换PDF列表" id="sidebarToggle">›</button>
+    
+    <!-- 退出按钮 -->
+    <button class="exit-btn" onclick="exitApplication()" title="退出应用">×</button>
+    
+    <div class="app-container">
+        <div class="main-container">
+            <div class="search-section">
+                <h1 class="main-title">关键词检索</h1>
+                
+                <div class="search-container">
+                    <div class="search-types">
+                        <button class="search-type-tab active" data-type="web">网页搜索</button>
+                        <button class="search-type-tab" data-type="paper">
+                            论文搜索
+                            <span class="arxiv-icon">arXiv</span>
+                        </button>
+                    </div>
+
+                    <div class="input-container">
+                        <input type="text" class="search-input" placeholder="输入您想检索的关键词" id="searchInput">
+                        <div class="input-actions">
+                            <button class="action-btn search-btn" id="searchBtn">→</button>
+                        </div>
+                    </div>
+
+                    <div class="loading" id="loading" style="display: none;">
+                        搜索中，请稍候
+                    </div>
+                </div>
+
+                <div class="results-section" id="results" style="display: none;">
+                    <!-- 搜索结果将在这里显示 -->
+                </div>
+            </div>
+        </div>
+
+        <!-- PDF列表侧边栏 -->
+        <div class="pdf-sidebar" id="pdfSidebar">
+            <div class="pdf-list" id="pdfList">
+                <div class="pdf-list-title">已保存的内容</div>
+                <div id="pdfItems">
+                    <!-- PDF项目将在这里显示 -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PDF预览器 -->
+    <div class="pdf-viewer-overlay" id="pdfViewerOverlay" style="display: none;">
+        <div class="pdf-viewer">
+            <div class="pdf-viewer-header">
+                <h3 class="pdf-viewer-title" id="pdfViewerTitle">PDF预览</h3>
+                <button class="pdf-viewer-close" onclick="closePdfViewer()">×</button>
+            </div>
+            <div class="pdf-viewer-content">
+                <iframe class="pdf-viewer-iframe" id="pdfViewerIframe" src=""></iframe>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentSearchType = 'web';
+        let currentSearchResults = null;
+        let currentKeyword = '';
+        let smartFilterActive = false;
+
+        // 搜索类型切换
+        document.querySelectorAll('.search-type-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.search-type-tab').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                currentSearchType = tab.dataset.type;
+                
+                // 更新占位符文本
+                const input = document.getElementById('searchInput');
+                if (currentSearchType === 'web') {
+                    input.placeholder = '输入您想检索的关键词';
+                } else {
+                    input.placeholder = '输出您想检索的论文的关键词';
+                }
+            });
+        });
+
+        // 搜索功能
+        document.getElementById('searchBtn').addEventListener('click', performSearch);
+        document.getElementById('searchInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                performSearch();
+            }
+        });
+
+        async function performSearch() {
+            const keyword = document.getElementById('searchInput').value.trim();
+            if (!keyword) {
+                document.getElementById('searchInput').focus();
+                return;
+            }
+
+            const searchBtn = document.getElementById('searchBtn');
+            const loading = document.getElementById('loading');
+            const results = document.getElementById('results');
+
+            // 显示加载状态
+            searchBtn.disabled = true;
+            loading.style.display = 'block';
+            results.style.display = 'none';
+
+            try {
+                const response = await fetch('/search', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        search_type: currentSearchType,
+                        keyword: keyword
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    displayResults(data);
+                } else {
+                    showError(data.error || '搜索失败');
+                }
+            } catch (error) {
+                showError('网络错误，请稍后重试');
+                console.error('Search error:', error);
+            } finally {
+                searchBtn.disabled = false;
+                loading.style.display = 'none';
+            }
+        }
+
+        function displayResults(data) {
+            const results = document.getElementById('results');
+            const { search_type, keyword, results: searchResults } = data;
+            
+            // 保存当前搜索结果用于智能筛选
+            currentSearchResults = searchResults;
+            currentKeyword = keyword;
+            smartFilterActive = false;
+
+            let html = `
+                <div class="results-header">
+                    <div class="results-title">${search_type === 'web' ? '网页' : '论文'}搜索结果</div>
+                    <div class="results-meta">
+                        关键词: "${keyword}" · 共找到 ${searchResults.total_count} 条结果
+                    </div>
+                </div>
+            `;
+
+            if (searchResults.items.length === 0) {
+                html += `
+                    <div class="no-results">
+                        <div class="no-results-title">未找到相关结果</div>
+                        <div class="no-results-text">请尝试使用其他关键词</div>
+                    </div>
+                `;
+            } else {
+                html += '<div class="results-grid">';
+                searchResults.items.forEach((item, index) => {
+                    if (search_type === 'web') {
+                        html += `
+                            <div class="result-card">
+                                <input type="checkbox" class="result-checkbox" data-url="${item.url}" data-index="${index}">
+                                <div class="result-content-wrapper">
+                                    <div class="result-title" onclick="window.open('${item.url}', '_blank')">${item.title}</div>
+                                    <div class="result-url">${item.url}</div>
+                                    <div class="result-content">${item.content}</div>
+                                </div>
+                            </div>
+                        `;
+                    } else {
+                        html += `
+                            <div class="result-card">
+                                <input type="checkbox" class="result-checkbox" data-url="${item.url}" data-index="${index}">
+                                <div class="result-content-wrapper">
+                                    <div class="result-title" onclick="window.open('${item.url}', '_blank')">${item.title}</div>
+                                    <div class="result-url">${item.url}</div>
+                                    <div class="result-abstract">${item.abstract}</div>
+                                </div>
+                            </div>
+                        `;
+                    }
+                });
+                html += '</div>';
+                
+                // 为搜索结果添加爬取控件
+                if (search_type === 'paper') {
+                    html += `
+                        <div class="crawl-controls">
+                            <div class="crawl-info">
+                                已选择 <span id="selectedCount">0</span> 篇论文
+                            </div>
+                            <div class="crawl-actions">
+                                <button class="smart-filter-btn" id="smartFilterBtn" onclick="performSmartFilter()">
+                                    智能筛选
+                                </button>
+                                <button class="crawl-btn" id="crawlBtn" onclick="crawlSelectedPapers()">
+                                    爬取分析
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                } else if (search_type === 'web') {
+                    html += `
+                        <div class="crawl-controls">
+                            <div class="crawl-info">
+                                已选择 <span id="selectedCount">0</span> 个网页
+                            </div>
+                            <div class="crawl-actions">
+                                <button class="crawl-btn" id="crawlBtn" onclick="crawlSelectedWebpages()">
+                                    保存网页
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                }
+            }
+
+            results.innerHTML = html;
+            results.style.display = 'block';
+            
+            // 为搜索结果添加勾选框事件监听
+            if (search_type === 'paper' || search_type === 'web') {
+                setupCheckboxListeners();
+            }
+        }
+
+        function setupCheckboxListeners() {
+            const checkboxes = document.querySelectorAll('.result-checkbox');
+            
+            checkboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', () => {
+                    updateSelectedCount();
+                });
+            });
+        }
+
+        async function crawlSelectedPapers() {
+            const selectedCheckboxes = document.querySelectorAll('.result-checkbox:checked');
+            
+            if (selectedCheckboxes.length === 0) {
+                alert('请先选择要爬取的论文');
+                return;
+            }
+
+            const selectedUrls = Array.from(selectedCheckboxes).map(cb => cb.dataset.url);
+            const selectedTitles = Array.from(selectedCheckboxes).map(cb => {
+                const resultCard = cb.closest('.result-card');
+                const titleElement = resultCard.querySelector('.result-title');
+                return titleElement ? titleElement.textContent.trim() : '未知标题';
+            });
+            
+            const crawlBtn = document.getElementById('crawlBtn');
+            
+            // 显示加载状态
+            crawlBtn.disabled = true;
+            crawlBtn.textContent = '爬取中...';
+            
+            try {
+                const response = await fetch('/crawl', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        urls: selectedUrls,
+                        titles: selectedTitles
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert(`成功爬取 ${data.crawled_count} 篇论文！`);
+                    // 刷新内容列表
+                    loadContentList();
+                } else {
+                    alert(`爬取失败: ${data.error}`);
+                }
+            } catch (error) {
+                alert('网络错误，请稍后重试');
+                console.error('Crawl error:', error);
+            } finally {
+                crawlBtn.disabled = false;
+                crawlBtn.textContent = '爬取分析';
+            }
+        }
+
+        async function crawlSelectedWebpages() {
+            const selectedCheckboxes = document.querySelectorAll('.result-checkbox:checked');
+            
+            if (selectedCheckboxes.length === 0) {
+                alert('请先选择要保存的网页');
+                return;
+            }
+
+            const selectedUrls = Array.from(selectedCheckboxes).map(cb => cb.dataset.url);
+            const selectedTitles = Array.from(selectedCheckboxes).map(cb => {
+                const resultCard = cb.closest('.result-card');
+                const titleElement = resultCard.querySelector('.result-title');
+                return titleElement ? titleElement.textContent.trim() : '未知标题';
+            });
+            
+            const crawlBtn = document.getElementById('crawlBtn');
+            
+            // 显示加载状态
+            crawlBtn.disabled = true;
+            crawlBtn.textContent = '保存中...';
+            
+            try {
+                const response = await fetch('/crawl-webpages', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        urls: selectedUrls,
+                        titles: selectedTitles
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert(`成功保存 ${data.crawled_count} 个网页！`);
+                    // 刷新内容列表
+                    loadContentList();
+                } else {
+                    alert(`保存失败: ${data.error}`);
+                }
+            } catch (error) {
+                alert('网络错误，请稍后重试');
+                console.error('Crawl error:', error);
+            } finally {
+                crawlBtn.disabled = false;
+                crawlBtn.textContent = '保存网页';
+            }
+        }
+
+        function showError(message) {
+            const results = document.getElementById('results');
+            results.innerHTML = `<div class="error-card">${message}</div>`;
+            results.style.display = 'block';
+        }
+
+        // 内容预览相关函数
+        async function loadContentList() {
+            try {
+                const [pdfResponse, webResponse] = await Promise.all([
+                    fetch('/pdf-list'),
+                    fetch('/webpage-list')
+                ]);
+                
+                const pdfData = await pdfResponse.json();
+                const webData = await webResponse.json();
+                
+                const pdfs = pdfData.success ? pdfData.pdfs : [];
+                const webpages = webData.success ? webData.webpages : [];
+                
+                displayContentList(pdfs, webpages);
+            } catch (error) {
+                console.error('获取内容列表失败:', error);
+                hideContentList();
+            }
+        }
+
+        // 兼容性保留
+        async function loadPdfList() {
+            loadContentList();
+        }
+
+        function displayContentList(pdfs, webpages) {
+            const pdfItems = document.getElementById('pdfItems');
+            
+            let html = '';
+            const totalItems = pdfs.length + webpages.length;
+            
+            if (totalItems === 0) {
+                html = `
+                    <div class="pdf-empty-state">
+                        <div class="pdf-empty-icon">📁</div>
+                        <div class="pdf-empty-text">暂无已保存的内容</div>
+                    </div>
+                `;
+            } else {
+                // 显示论文
+                if (pdfs.length > 0) {
+                    html += `<div class="content-section-title">📄 论文 (${pdfs.length})</div>`;
+                    pdfs.forEach(pdf => {
+                        html += `
+                            <div class="pdf-item">
+                                <div class="pdf-item-content">
+                                    <div class="pdf-item-title">${pdf.title}</div>
+                                    <div class="pdf-item-actions">
+                                        <button class="pdf-icon-btn" onclick="previewPdf('${pdf.filename}')" title="预览PDF">
+                                            📄
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                }
+                
+                // 显示网页
+                if (webpages.length > 0) {
+                    html += `<div class="content-section-title">🌐 网页 (${webpages.length})</div>`;
+                    webpages.forEach(webpage => {
+                        html += `
+                            <div class="pdf-item">
+                                <div class="pdf-item-content">
+                                    <div class="pdf-item-title">${webpage.title}</div>
+                                    <div class="pdf-item-actions">
+                                        <button class="pdf-icon-btn" onclick="previewWebpage('${webpage.filename}')" title="预览网页">
+                                            🌐
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                }
+            }
+            
+            pdfItems.innerHTML = html;
+        }
+
+        // 兼容性保留
+        function displayPdfList(pdfs) {
+            displayContentList(pdfs, []);
+        }
+
+        function hideContentList() {
+            const pdfItems = document.getElementById('pdfItems');
+            pdfItems.innerHTML = `
+                <div class="pdf-empty-state">
+                    <div class="pdf-empty-icon">📁</div>
+                    <div class="pdf-empty-text">暂无已保存的内容</div>
+                </div>
+            `;
+        }
+
+        // 兼容性保留
+        function hidePdfList() {
+            hideContentList();
+        }
+
+        function previewPdf(filename) {
+            const pdfViewerOverlay = document.getElementById('pdfViewerOverlay');
+            const pdfViewerTitle = document.getElementById('pdfViewerTitle');
+            const pdfViewerIframe = document.getElementById('pdfViewerIframe');
+            
+            pdfViewerTitle.textContent = `PDF预览 - ${filename}`;
+            pdfViewerIframe.src = `/pdf-preview/${encodeURIComponent(filename)}`;
+            pdfViewerOverlay.style.display = 'flex';
+            
+            // 阻止body滚动
+            document.body.style.overflow = 'hidden';
+        }
+
+        function previewWebpage(filename) {
+            const pdfViewerOverlay = document.getElementById('pdfViewerOverlay');
+            const pdfViewerTitle = document.getElementById('pdfViewerTitle');
+            const pdfViewerIframe = document.getElementById('pdfViewerIframe');
+            
+            pdfViewerTitle.textContent = `网页预览 - ${filename}`;
+            pdfViewerIframe.src = `/webpage-preview/${encodeURIComponent(filename)}`;
+            pdfViewerOverlay.style.display = 'flex';
+            
+            // 阻止body滚动
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closePdfViewer() {
+            const pdfViewerOverlay = document.getElementById('pdfViewerOverlay');
+            const pdfViewerIframe = document.getElementById('pdfViewerIframe');
+            
+            pdfViewerOverlay.style.display = 'none';
+            pdfViewerIframe.src = '';
+            
+            // 恢复body滚动
+            document.body.style.overflow = 'auto';
+        }
+
+        // 点击overlay背景关闭预览器
+        document.getElementById('pdfViewerOverlay').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closePdfViewer();
+            }
+        });
+
+        // ESC键关闭预览器
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closePdfViewer();
+            }
+        });
+
+        // 页面加载时检查是否有已保存的内容
+        window.addEventListener('load', loadContentList);
+
+        // 侧栏切换功能
+        let sidebarCollapsed = window.innerWidth <= 768; // 移动端默认收起
+
+        function toggleSidebar() {
+            const sidebar = document.getElementById('pdfSidebar');
+            const mainContainer = document.querySelector('.main-container');
+            const toggleBtn = document.getElementById('sidebarToggle');
+            
+            sidebarCollapsed = !sidebarCollapsed;
+            
+            if (sidebarCollapsed) {
+                sidebar.classList.add('collapsed');
+                mainContainer.classList.add('sidebar-collapsed');
+                toggleBtn.classList.add('collapsed');
+                toggleBtn.textContent = '‹';
+                toggleBtn.title = '显示PDF列表';
+            } else {
+                sidebar.classList.remove('collapsed');
+                mainContainer.classList.remove('sidebar-collapsed');
+                toggleBtn.classList.remove('collapsed');
+                toggleBtn.textContent = '›';
+                toggleBtn.title = '隐藏PDF列表';
+            }
+        }
+
+        // 初始化侧栏状态
+        function initializeSidebar() {
+            const sidebar = document.getElementById('pdfSidebar');
+            const mainContainer = document.querySelector('.main-container');
+            const toggleBtn = document.getElementById('sidebarToggle');
+            
+            if (sidebarCollapsed) {
+                sidebar.classList.add('collapsed');
+                mainContainer.classList.add('sidebar-collapsed');
+                toggleBtn.classList.add('collapsed');
+                toggleBtn.textContent = '‹';
+                toggleBtn.title = '显示PDF列表';
+            } else {
+                sidebar.classList.remove('collapsed');
+                mainContainer.classList.remove('sidebar-collapsed');
+                toggleBtn.classList.remove('collapsed');
+                toggleBtn.textContent = '›';
+                toggleBtn.title = '隐藏PDF列表';
+            }
+        }
+
+        // 页面加载时初始化侧栏
+        window.addEventListener('load', initializeSidebar);
+
+        // 退出应用功能
+        async function exitApplication() {
+            const confirmExit = confirm('确定要退出应用吗？这将清除所有已保存的内容（论文和网页）。');
+            
+            if (confirmExit) {
+                try {
+                    // 显示加载状态
+                    const exitBtn = document.querySelector('.exit-btn');
+                    const originalText = exitBtn.textContent;
+                    exitBtn.textContent = '...';
+                    exitBtn.disabled = true;
+                    
+                    // 调用清除API
+                    const response = await fetch('/clear-papers', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        }
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        alert(`成功清除了 ${data.deleted_count} 个文件`);
+                        // 清空内容列表显示
+                        hideContentList();
+                        // 清空搜索结果
+                        document.getElementById('results').style.display = 'none';
+                        // 重置搜索框
+                        document.getElementById('searchInput').value = '';
+                    } else {
+                        alert(`清除失败: ${data.error}`);
+                    }
+                } catch (error) {
+                    alert('清除过程中发生错误，请稍后重试');
+                    console.error('Clear error:', error);
+                } finally {
+                    // 恢复按钮状态
+                    const exitBtn = document.querySelector('.exit-btn');
+                    exitBtn.textContent = originalText;
+                    exitBtn.disabled = false;
+                }
+            }
+        }
+
+        // 智能筛选相关函数
+        async function performSmartFilter() {
+            if (!currentSearchResults || !currentKeyword) {
+                alert('没有可用的搜索结果进行智能筛选');
+                return;
+            }
+
+            const smartFilterBtn = document.getElementById('smartFilterBtn');
+            
+            // 显示加载状态
+            smartFilterBtn.disabled = true;
+            smartFilterBtn.textContent = '正在智能筛选...';
+            
+            try {
+                const response = await fetch('/smart-filter', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        keyword: currentKeyword,
+                        papers: currentSearchResults.items
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showSmartFilterResult(data);
+                } else {
+                    alert(`智能筛选失败: ${data.error}`);
+                }
+            } catch (error) {
+                alert('网络错误，请稍后重试');
+                console.error('Smart filter error:', error);
+            } finally {
+                smartFilterBtn.disabled = false;
+                smartFilterBtn.textContent = '智能筛选';
+            }
+        }
+
+        function showSmartFilterResult(data) {
+            const results = document.getElementById('results');
+            
+            // 清除现有的勾选状态
+            document.querySelectorAll('.result-checkbox').forEach(checkbox => {
+                checkbox.checked = false;
+            });
+            
+            // 根据AI推荐自动勾选论文
+            data.recommended_papers.forEach(paper => {
+                const checkbox = document.querySelector(`[data-index="${paper.original_index}"]`);
+                if (checkbox) {
+                    checkbox.checked = true;
+                }
+            });
+            
+            // 更新选择计数
+            updateSelectedCount();
+            
+            // 显示AI推荐结果说明
+            const smartFilterResultHtml = `
+                <div class="smart-filter-result" id="smartFilterResult">
+                    <div class="smart-filter-header">
+                        <div class="smart-filter-title">🤖 AI智能推荐结果</div>
+                    </div>
+                    <div class="smart-filter-reasoning">
+                        <strong>推荐理由：</strong>${data.reasoning}
+                    </div>
+                    <div class="smart-filter-actions">
+                        <button class="confirm-btn" onclick="confirmSmartFilter()">
+                            确认推荐（共${data.total_recommended}篇）
+                        </button>
+                        <button class="cancel-btn" onclick="cancelSmartFilter()">
+                            取消
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            // 如果已存在智能筛选结果，先移除
+            const existingResult = document.getElementById('smartFilterResult');
+            if (existingResult) {
+                existingResult.remove();
+            }
+            
+            // 添加到结果区域
+            results.insertAdjacentHTML('beforeend', smartFilterResultHtml);
+            
+            // 标记智能筛选已激活
+            smartFilterActive = true;
+        }
+
+        function confirmSmartFilter() {
+            // 隐藏智能筛选结果
+            const smartFilterResult = document.getElementById('smartFilterResult');
+            if (smartFilterResult) {
+                smartFilterResult.remove();
+            }
+            
+            // 开始爬取选中的论文
+            crawlSelectedPapers();
+            
+            smartFilterActive = false;
+        }
+
+        function cancelSmartFilter() {
+            // 清除所有勾选
+            document.querySelectorAll('.result-checkbox').forEach(checkbox => {
+                checkbox.checked = false;
+            });
+            
+            // 更新选择计数
+            updateSelectedCount();
+            
+            // 隐藏智能筛选结果
+            const smartFilterResult = document.getElementById('smartFilterResult');
+            if (smartFilterResult) {
+                smartFilterResult.remove();
+            }
+            
+            smartFilterActive = false;
+        }
+
+        function updateSelectedCount() {
+            const selectedCount = document.querySelectorAll('.result-checkbox:checked').length;
+            const selectedCountSpan = document.getElementById('selectedCount');
+            if (selectedCountSpan) {
+                selectedCountSpan.textContent = selectedCount;
+            }
+            
+            const crawlBtn = document.getElementById('crawlBtn');
+            if (crawlBtn) {
+                crawlBtn.disabled = selectedCount === 0;
+            }
+        }
+    </script>
+</body>
+</html> 
+</html> 
