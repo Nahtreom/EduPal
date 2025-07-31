@@ -74,8 +74,9 @@ def _handle_api_generation_request(output_format):
                 output_format=output_format,
                 video_duration=options.get('video_duration', 'medium'),
                 voice_type=options.get('voice_type', 'female'),
-                background_choice=options.get('background_choice', 'default'),
-                auto_continue=True # 如果是false就可以不写这一行
+                # background_choice=options.get('background_choice', 'default'),
+                background_choice=options.get('background_choice', 'background.png'),
+                auto_continue=True # 如果是false就可以不写这一行,仅仅在企业配置接口的时候需要
             )
 
         # --- 情况B: 批量/文件夹处理逻辑 ---
@@ -98,7 +99,8 @@ def _handle_api_generation_request(output_format):
                 output_format=output_format,
                 video_duration=options.get('video_duration', 'medium'),
                 voice_type=options.get('voice_type', 'female'),
-                background_choice=options.get('background_choice', 'default'),
+                # background_choice=options.get('background_choice', 'default),
+                background_choice=options.get('background_choice', 'background.png'),
                 auto_continue=True # 如果是false就可以不写这一行
             )
 
@@ -630,8 +632,9 @@ def start_processing():
     video_duration = request.form.get('video_duration', 'medium')
     voice_type = request.form.get('voice_type', 'female')
     output_format = request.form.get('output_format', 'video')
-    background_choice = request.form.get('background_choice', 'default') # 'default'表示不选择
-    
+    # background_choice = request.form.get('background_choice', 'default') # 'default'表示不选择
+    background_choice = request.form.get('background_choice', 'background.png')
+
     if not pdf_filename:
         return jsonify({'error': '请提供PDF文件名'}), 400
     
@@ -678,7 +681,8 @@ def start_folder_processing():
         # 【新增】从请求中获取音色相关的参数，与单篇处理的路由保持一致
         video_duration = request.form.get('video_duration', 'medium')
         voice_type = request.form.get('voice_type', 'female')
-        background_choice = request.form.get('background_choice', 'default')
+        # background_choice = request.form.get('background_choice', 'default')
+        background_choice = request.form.get('background_choice', 'background.png')
 
         print(f"接收到文件夹处理请求: 文件夹={folder_name}, 批次ID={batch_id}, 格式={output_format}, "
               f"时长={video_duration}, 音色={voice_type}, 背景={background_choice}")

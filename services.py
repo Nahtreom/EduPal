@@ -1215,8 +1215,12 @@ def start_paper_processing(pdf_path, pdf_filename, video_duration='medium', voic
         'error': None,
         'stage': 'initial'  # initial, waiting_for_edit, continuing, completed
     }
-    
+
+    print(f"-------------------------------------------")
     print(f"  即将存入 job_info 的 voice_type: [{job_info['voice_type']}]")
+    print(f"  即将存入 job_info 的 background_choice: [{job_info['background_choice']}]")
+    print(f"  即将存入 job_info 的 custom_background_path: [{job_info['custom_background_path']}]")
+    print(f"  即将存入的job_info : [{job_info}]")
     print(f"-------------------------------------------")
 
     with processing_lock:
@@ -1519,6 +1523,7 @@ def run_initial_processing(process_id, pdf_path, base_name):
 
                     # code_dir 变量在之前的代码中已经定义
                     background_to_apply = None
+                    print(f"  [DEBUG] 检测到的背景选择: {choice}, 自定义路径: {custom_path}")
 
                     # 检查是否需要应用背景
                     if choice and choice != 'default':
@@ -1536,6 +1541,8 @@ def run_initial_processing(process_id, pdf_path, base_name):
                         # 情况二：用户选择了预设背景 (例如 'SJTU.png')
                         elif choice != 'custom':
                             # 预设背景图存放在 static/backgrounds/
+                            background_to_apply = 'pptcover/background.jpg'
+                            print(f"  [DEBUG] aaaa使用预设背景: {choice}")
                             preset_source_path = os.path.join('static', 'backgrounds', choice)
                             if os.path.exists(preset_source_path):
                                 destination_path = os.path.join(code_dir, choice)
@@ -1544,6 +1551,10 @@ def run_initial_processing(process_id, pdf_path, base_name):
                                 background_to_apply = choice
                             else:
                                 update_job_status(log_msg=f'    ⚠️ 预设背景文件不存在: {preset_source_path}，跳过应用')
+                        if choice == 'background.jpg':
+                            print(f"  [DEBUG] 检测到用户选择了默认背景，使用默认背景。")
+                            background_to_apply = 'pptcover/background.jpg'
+                            update_job_status(log_msg=f'    -> 使用默认背景: {background_to_apply}')
                         
                         # 如果成功复制了背景文件，则调用脚本应用它
                         if background_to_apply:
@@ -1551,6 +1562,7 @@ def run_initial_processing(process_id, pdf_path, base_name):
                             # apply_background_to_code 是之前写好的函数，可以直接调用
                             try:
                                 # 注意：apply_background_to_code 函数需要 process_id 和文件名
+                                print(f"  [DEBUG] 调用脚本应用背景: {background_to_apply}")
                                 apply_result = apply_background_to_code(process_id, background_to_apply)
                                 update_job_status(log_msg=f'    ✅ 背景应用完成: {apply_result.get("message", "无返回信息")}')
                             except Exception as apply_error:
@@ -1560,6 +1572,9 @@ def run_initial_processing(process_id, pdf_path, base_name):
 
                     else:
                         update_job_status(log_msg='🎨 用户未指定特殊背景，使用默认背景。')
+                        print(f"  [DEBUG] 未指定特殊背景，使用默认背景。")
+                        background_to_apply = 'pptcover/background.jpg'
+                        apply_result = apply_background_to_code(process_id, background_to_apply)
 
                 except Exception as e:
                     update_job_status(log_msg=f'⚠️ 应用背景图时发生严重错误: {str(e)}，处理将继续但背景可能不会生效。')
@@ -1687,7 +1702,12 @@ def start_folder_processing(folder_path, folder_name, unique_base_name, video_du
     # --- [调试点2] ---
     # print(f"  即将为文件夹处理创建 job_info，voice_type 为: [{job_info['voice_type']}]")
     # print(f"-------------------------------------------")
-
+    print(f"-------------------------------------------")
+    print(f"  即将存入 job_info 的 voice_type: [{job_info['voice_type']}]")
+    print(f"  即将存入 job_info 的 background_choice: [{job_info['background_choice']}]")
+    print(f"  即将存入 job_info 的 custom_background_path: [{job_info['custom_background_path']}]")
+    print(f"  即将存入的job_info : [{job_info}]")
+    print(f"-------------------------------------------")
 
     with processing_lock:
         processing_jobs[process_id] = job_info
@@ -1850,6 +1870,7 @@ def run_folder_processing(process_id, folder_path, base_name):
 
                     # code_dir 变量在之前的代码中已经定义
                     background_to_apply = None
+                    print(f"  [DEBUG] 检测到的背景选择: {choice}, 自定义路径: {custom_path}")
 
                     # 检查是否需要应用背景
                     if choice and choice != 'default':
@@ -1890,7 +1911,10 @@ def run_folder_processing(process_id, folder_path, base_name):
                              update_job_status(log_msg='    -> 未能定位到有效背景文件，跳过应用。')
 
                     else:
+                        print("🎨 用户未指定特殊背景，使用默认背景。")
                         update_job_status(log_msg='🎨 用户未指定特殊背景，使用默认背景。')
+                        background_to_apply = 'pptcover/background.jpg'
+                        apply_result = apply_background_to_code(process_id, background_to_apply)
 
                 except Exception as e:
                     update_job_status(log_msg=f'⚠️ 应用背景图时发生严重错误: {str(e)}，处理将继续但背景可能不会生效。')
@@ -1978,6 +2002,7 @@ def run_folder_processing(process_id, folder_path, base_name):
 
                     # code_dir 变量在之前的代码中已经定义
                     background_to_apply = None
+                    print(f"  [DEBUG] 检测到的背景选择: {choice}, 自定义路径: {custom_path}")
 
                     # 检查是否需要应用背景
                     if choice and choice != 'default':
@@ -2146,7 +2171,7 @@ def run_continue_processing(process_id, base_name):
         # output_dir = f"{base_name}_output"
         project_root = os.path.abspath(os.path.dirname(__file__))
         output_dir_name = f"{base_name}_output"
-                # === 创建配置文件 (这是您缺失的关键逻辑) ===
+        # === 创建配置文件 (这是您缺失的关键逻辑) ===
         with processing_lock:
             job = processing_jobs[process_id]
             custom_voice_path_rel = job.get("custom_voice_path")
@@ -2812,6 +2837,7 @@ def generate_pptcover_content(process_id):
         mineru_output_dir = Path(f"/home/EduAgent/MinerU/outputs_clean/{base_name}")
         p2v_output_dir = Path(f"/home/EduAgent/Paper2Video/{base_name}_output")
         code_dir = p2v_output_dir / "final_results" / "Code"
+        print("正在生成ppt封面...")
         
         # 检查必要的目录和文件是否存在
         if not source_manim_template_path.exists():
@@ -2848,6 +2874,7 @@ def generate_pptcover_content(process_id):
         # 加载配置
         config = load_config()
         api_client = APIClient(api_key=config['api_key'], model=config['model'])
+        print("加载配置成功，开始查找md文件...")
         
         # 查找md文件
         md_files = list(mineru_output_dir.glob('*.md'))
@@ -2881,6 +2908,7 @@ def generate_pptcover_content(process_id):
         all_authors = []
         all_affiliations = []
         subprocess.run(['echo', 'aaaaaaaaaaaaaaaaaaa'])
+        print("开始提取论文信息...")
         
         for md_file in md_files:
             info = get_paper_info_with_llm(md_file, api_client)
@@ -2912,6 +2940,7 @@ def generate_pptcover_content(process_id):
         is_batch = len(all_titles) > 1
         
         # 处理单位信息去重
+        print("开始处理单位信息...")
         unique_affiliations = set()
         for aff_group in all_affiliations:
             if aff_group:  # 确保不是空字符串
@@ -2940,6 +2969,7 @@ def generate_pptcover_content(process_id):
             final_authors = all_authors[0] if all_authors else ""
         
         # 替换特殊字符，防止代码语法错误
+        print("准备最终的标题和作者...")
         final_title_escaped = final_title.replace('"', '\\"')
         final_authors_escaped = final_authors.replace('"', '\\"')
         final_affiliations_escaped = final_affiliations.replace('"', '\\"')

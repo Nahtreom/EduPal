@@ -93,6 +93,12 @@ def run_single_file_workflow(input_pdf_path, output_dir=None):
     print_step("Step 2️⃣ 执行 Paper2PPT 的主处理流程")
     
     # 构建命令，如果有输出目录则添加参数
+    command = ["python3", "master_pipeline_ppt.py", md_path, image_output_dir]
+    if output_dir:
+        command.extend(["--output-base-dir", output_dir])
+       
+
+    # 构建命令，如果有输出目录则添加参数
     # <--- 修改: 移除 cwd 参数 --->
     run_command_live_output(command, cwd=os.path.join(PROJECT_ROOT, "Paper2Video"))
     # command = ["python3", "master_pipeline_ppt.py", md_path, image_output_dir]

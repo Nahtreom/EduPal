@@ -1,6 +1,8 @@
 # 忽略所有在models目录下的内容
 models/
 MinerU/
+CosyVoice/
+downloaded_papers/
 
 # Python 缓存
 __pycache__/

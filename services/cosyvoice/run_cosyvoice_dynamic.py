@@ -10,7 +10,8 @@ import argparse # 【新增】导入参数解析模块
 parser = argparse.ArgumentParser(description="使用 CosyVoice 动态合成语音")
 parser.add_argument("input_dir", type=str, help="包含待合成 .txt 文件的输入目录路径")
 parser.add_argument("output_dir", type=str, help="存放合成后 .wav 文件的输出目录路径")
-parser.add_argument("--prompt_wav", type=str, default='./asset/zero_shot_prompt.wav', help="用于音色克隆的提示音频路径 (例如，用户上传的音频)")
+# parser.add_argument("--prompt_wav", type=str, default='./asset/zero_shot_prompt.wav', help="用于音色克隆的提示音频路径 (例如，用户上传的音频)")
+parser.add_argument("--prompt_wav", type=str, default='/home/EduAgent/CosyVoice/asset/zero_shot_prompt.wav', help="用于音色克隆的提示音频路径 (例如，用户上传的音频)")
 parser.add_argument("--prompt_text", type=str, default='希望你以后能够做的比我还好呦。', help="提示音频对应的文本 (例如，用户输入的文本)")
 parser.add_argument("--voice_name", type=str, default='default', help="用于区分不同音色的名称，方便调试和管理")
 
@@ -20,7 +21,15 @@ args = parser.parse_args() # 解析传入的命令行参数
 
 # 设置 CUDA 设备
 os.environ["CUDA_VISIBLE_DEVICES"] = "1"
-sys.path.append('third_party/Matcha-TTS')
+# sys.path.append('third_party/Matcha-TTS')
+
+# ================20250731update======================
+# sys.path.append('/home/EduAgent/CosyVoice/third_party/Matcha-TTS')
+sys.path.insert(0, "/home/EduAgent/CosyVoice/third_party/Matcha-TTS")
+# 获取 cosyvoice 项目的根路径
+cosyvoice_root = "/home/EduAgent/CosyVoice"
+sys.path.insert(0, cosyvoice_root)
+# ====================================================
 
 from cosyvoice.cli.cosyvoice import CosyVoice2
 from cosyvoice.utils.file_utils import load_wav
@@ -35,9 +44,17 @@ input_dir_name = os.path.basename(os.path.normpath(input_dir))
 summary_txt_filename = f"{input_dir_name}.txt"
 summary_path = os.path.join(output_dir, summary_txt_filename)
 
+
+# ================20250731update======================
 # 加载 TTS 模型
+print("当前工作目录:", os.getcwd())
+print("模型路径:", "/home/EduAgent/CosyVoice/pretrained_models/CosyVoice2-0.5B")
+# ====================================================
+
 print("正在加载 CosyVoice 模型...")
-cosyvoice = CosyVoice2('pretrained_models/CosyVoice2-0.5B',
+# cosyvoice = CosyVoice2('pretrained_models/CosyVoice2-0.5B',
+#                        load_jit=False, load_trt=False, load_vllm=False, fp16=False)
+cosyvoice = CosyVoice2('/home/EduAgent/CosyVoice/pretrained_models/CosyVoice2-0.5B',
                        load_jit=False, load_trt=False, load_vllm=False, fp16=False)
 
 # 【修改】动态加载提示音

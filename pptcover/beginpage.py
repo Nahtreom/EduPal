@@ -20,10 +20,10 @@ slide_layout = prs.slide_layouts[6]  # 空白布局
 slide = prs.slides.add_slide(slide_layout)
 
 # 添加背景图，需要替换为实际图片路径
-background_image_path = "/home/EduAgent/pptcover/cover.png"
-pic = slide.shapes.add_picture(background_image_path, 0, 0, width=prs.slide_width, height=prs.slide_height)
-# 调整图片层级到最底层
-pic.z_order = 0
+# background_image_path = "/home/EduAgent/pptcover/cover.png"
+# pic = slide.shapes.add_picture(background_image_path, 0, 0, width=prs.slide_width, height=prs.slide_height)
+# # 调整图片层级到最底层
+# pic.z_order = 0
 
 # 添加文本框，设置位置和大小（让它尽量居中展示）
 left = Inches(1)

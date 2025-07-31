@@ -75,20 +75,26 @@ echo "📁 讲稿目录: $SPEECH_DIR"
 echo "🎵 音频输出目录: $AUDIO_OUTPUT_DIR"
 
 # 切换到CosyVoice目录并执行语音合成
+# 切换到CosyVoice启动目录并执行语音合成
 echo ""
 echo "🔄 切换到CosyVoice目录..."
+# ================20250731update======================
 cd CosyVoice
+# cd services/cosyvoice
+# ====================================================
 
 # ==================== 【新增：动态构建Python命令】 ====================
 if [ "$VOICE_TYPE" = "custom" ] && [ -n "$CUSTOM_VOICE_PATH" ] && [ -n "$CUSTOM_VOICE_TEXT" ]; then
     echo "🎤 使用自定义音色和文本进行合成"
     CMD_ARGS=("--prompt_wav" "$CUSTOM_VOICE_PATH" "--prompt_text" "$CUSTOM_VOICE_TEXT" "--voice_name" "custom")
 else
-    PROMPT_WAV="./asset/zero_shot_prompt.wav"
+    # PROMPT_WAV="./asset/zero_shot_prompt.wav"
+    PROMPT_WAV="/home/EduAgent/CosyVoice/asset/zero_shot_prompt.wav"
     PROMPT_TEXT="希望你以后能够做的比我还好呦。"
     VOICE_NAME="female"
     if [ "$VOICE_TYPE" = "male" ]; then
-        PROMPT_WAV="./asset/cross_lingual_prompt.wav"
+        # PROMPT_WAV="./asset/cross_lingual_prompt.wav"
+        PROMPT_WAV="/home/EduAgent/CosyVoice/asset/cross_lingual_prompt.wav"
         PROMPT_TEXT="在那之后，完全收购那家公司，因此保持管理层的一致性，利益与即将加入家族的资产保持一致。这就是我们有时不买下全部的原因。"
         VOICE_NAME="male"
     elif [ "$VOICE_TYPE" = "child" ]; then
@@ -147,12 +153,19 @@ done
 # ==================== 【核心修改：整合动态调用】 ====================
 # 将要执行的命令构建成一个字符串，这样可以避免代码重复
 # 注意：我们将 CMD_ARGS 数组安全地传递给这个命令字符串
+# COMMAND_TO_RUN="
+#     conda activate cosyvoice && \\
+#     echo '✅ conda环境激活成功' && \\
+#     echo '🔹 执行命令: python run_cosyvoice_dynamic.py \"$1\" \"$2\" ${@:3}' && \\
+#     python run_cosyvoice_dynamic.py \"\$1\" \"\$2\" \"\${@:3}\"
+# "
 COMMAND_TO_RUN="
     conda activate cosyvoice && \\
     echo '✅ conda环境激活成功' && \\
-    echo '🔹 执行命令: python run_cosyvoice_dynamic.py \"$1\" \"$2\" ${@:3}' && \\
-    python run_cosyvoice_dynamic.py \"\$1\" \"\$2\" \"\${@:3}\"
+    echo '🔹 执行命令: python （新架构但必须默认CosyVoice在根目录下）../services/cosyvoice/run_cosyvoice_dynamic.py \"$1\" \"$2\" ${@:3}' && \\
+    python ../services/cosyvoice/run_cosyvoice_dynamic.py \"\$1\" \"\$2\" \"\${@:3}\"
 "
+
 # 解释:
 # \"$1\" 是 SPEECH_DIR
 # \"$2\" 是 AUDIO_OUTPUT_DIR

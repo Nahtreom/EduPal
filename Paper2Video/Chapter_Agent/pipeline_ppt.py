@@ -193,7 +193,7 @@ def step1_brain_segmentation(paper_path, segmentation_dir, chapter_type):
     current_dir = os.path.dirname(os.path.abspath(__file__))
     parent_dir = os.path.dirname(current_dir)
     brain_script = os.path.join(current_dir, "Chapter_Brain.py")
-    brain_template = os.path.join(parent_dir, "prompt_template", f"{chapter_type}_Brain.txt")
+    brain_template = os.path.join(parent_dir, "prompt_template", f"{chapter_type}_Brain_ppt.txt")
     #brain_template = os.path.join(parent_dir, "prompt_template", f"ppt_Brain.txt")
     
     command = [sys.executable, brain_script, paper_path, segmentation_dir, "--prompt-template", brain_template]
@@ -252,7 +252,7 @@ def step3_batch_coding(split_pages_dir, generated_code_dir, chapter_type):
     parent_dir = os.path.dirname(current_dir)
     batch_coder_script = os.path.join(current_dir, "batch_coder.py")
     #coder_template = os.path.join(parent_dir, "prompt_template", f"{chapter_type}_Coder_ppt.txt")
-    coder_template = os.path.join(parent_dir, "prompt_template", f"Conclusion_Coder_ppt.txt")
+    coder_template = os.path.join(parent_dir, "prompt_template", f"Experiment_Coder_ppt.txt")
     
     command = [sys.executable, batch_coder_script, split_pages_dir, generated_code_dir, "--prompt-template", coder_template]
     
