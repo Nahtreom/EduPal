@@ -1347,7 +1347,7 @@ def run_initial_processing(process_id, pdf_path, base_name):
                             shutil.copy2(py_file, os.path.join(code_dir, filename))
                             update_job_status(log_msg=f'✅ 复制: {filename}')
                         
-                        logo_source = "/home/EduAgent/static/template_images/EDUPAL_logo.png"
+                        logo_source = "/home/EduAgent/static/images/EDUPAL_logo.png"
                         if os.path.exists(logo_source):
                             shutil.copy2(logo_source, os.path.join(code_dir, "EDUPAL_logo.png"))
                             update_job_status(log_msg=f'✅ 复制logo文件: EDUPAL_logo.png')
@@ -1663,7 +1663,7 @@ def run_folder_processing(process_id, folder_path, base_name):
                             shutil.copy2(py_file, os.path.join(code_dir, filename))
                             update_job_status(log_msg=f'✅ 复制: {filename}')
                         
-                        logo_source = "/home/EduAgent/static/template_images/EDUPAL_logo.png"
+                        logo_source = "/home/EduAgent/static/images/EDUPAL_logo.png"
                         if os.path.exists(logo_source):
                             shutil.copy2(logo_source, os.path.join(code_dir, "EDUPAL_logo.png"))
                             update_job_status(log_msg=f'✅ 复制logo文件: EDUPAL_logo.png')
@@ -3221,7 +3221,7 @@ def run_markdown_generation(process_id, base_name):
             images_dir,# <--- 【修改】使用我们动态找到的正确路径
             output_md_path,
             '--watermark',
-            '/home/EduAgent/backend/app/static/template_images/EDUPAL_logo.png'
+            '/home/EduAgent/backend/app/static/images/EDUPAL_logo.png'
         ]
 
         update_job_status(log_msg=f'⚙️ 执行命令: {" ".join(cmd)}') # 增加日志，方便调试

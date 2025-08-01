@@ -14,15 +14,15 @@ def replace_ppt_background_image(file_path, new_image_path, script_path=None):
     code = pattern_img_assignment.sub(rf'\1{full_image_path}\3', code)
     #new_code = pattern_direct_picture.sub(rf'\1{new_image_path}\3', new_code)
 
-    pattern_other_images = re.compile(r'(\bimage\d+_path\s*=\s*[\'"])([^\'"]+)([\'"])')
-    def replace_with_full_path(match):
-        orig_path = match.group(2)
-        full_path = os.path.join(script_path, orig_path)
-        return f'{match.group(1)}{full_path}{match.group(3)}'
+    # pattern_other_images = re.compile(r'(\bimage\d+_path\s*=\s*[\'"])([^\'"]+)([\'"])')
+    # def replace_with_full_path(match):
+    #     orig_path = match.group(2)
+    #     full_path = os.path.join(script_path, orig_path)
+    #     return f'{match.group(1)}{full_path}{match.group(3)}'
 
-    code = pattern_other_images.sub(replace_with_full_path, code)
-    pattern_other_images = re.compile(r'(image_path\s*=\s*[\'"])([^\'"]+)([\'"])')
-    code = pattern_other_images.sub(replace_with_full_path, code)
+    # code = pattern_other_images.sub(replace_with_full_path, code)
+    # pattern_other_images = re.compile(r'(image_path\s*=\s*[\'"])([^\'"]+)([\'"])')
+    # code = pattern_other_images.sub(replace_with_full_path, code)
 
     with open(file_path, 'w', encoding='utf-8') as f:
         f.write(code)

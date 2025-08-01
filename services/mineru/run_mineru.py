@@ -38,6 +38,7 @@ def main():
     output_path = os.path.join(PROJECT_ROOT, "outputs", "mineru", "outputs_raw")
     clean_base_path = os.path.join(PROJECT_ROOT, "outputs", "mineru", "outputs_clean")
 
+    # 如果没有则创建
     os.makedirs(output_path, exist_ok=True)
 
     # 构造 mineru 命令

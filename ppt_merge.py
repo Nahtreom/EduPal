@@ -1,12 +1,15 @@
 #!/home/EduAgent/miniconda3/envs/edu_env/bin/python3
 # -*- coding: utf-8 -*-
 
+import re
 import os
 import glob
 import argparse
 from pptx import Presentation
-from pptx.util import Pt
-import re
+from pptx.util import Inches, Pt, Length
+from pptx.enum.text import PP_ALIGN, MSO_ANCHOR
+from pptx.dml.color import RGBColor
+from pptx.chart.data import CategoryChartData
 
 
 # 从文件夹中找到所有 .py 文件
@@ -51,6 +54,9 @@ def create_slide_from_code(prs, slide_code):
 def generate_complete_ppt_from_folder(folder_path, output_ppt_path):
     """从文件夹中的所有 .py 文件生成一个完整的PPT"""
     prs = Presentation()  # 创建一个新的PPT对象
+    
+    prs.slide_width = Inches(12)
+    prs.slide_height = Inches(8)
 
     # 获取文件夹中的所有 .py 文件
     ppt_files = find_ppt_code_files(folder_path)

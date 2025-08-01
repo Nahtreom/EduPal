@@ -1358,7 +1358,7 @@ def run_initial_processing(process_id, pdf_path, base_name):
                             shutil.copy2(py_file, os.path.join(code_dir, filename))
                             update_job_status(log_msg=f'✅ 复制: {filename}')
                         
-                        logo_source = "/home/EduAgent/static/template_images/EDUPAL_logo.png"
+                        logo_source = "/home/EduAgent/static/images/EDUPAL_logo.png"
                         if os.path.exists(logo_source):
                             shutil.copy2(logo_source, os.path.join(code_dir, "EDUPAL_logo.png"))
                             update_job_status(log_msg=f'✅ 复制logo文件: EDUPAL_logo.png')
@@ -1541,7 +1541,7 @@ def run_initial_processing(process_id, pdf_path, base_name):
                         # 情况二：用户选择了预设背景 (例如 'SJTU.png')
                         elif choice != 'custom':
                             # 预设背景图存放在 static/backgrounds/
-                            background_to_apply = 'pptcover/background.jpg'
+                            #background_to_apply = 'pptcover/background.jpg'
                             print(f"  [DEBUG] aaaa使用预设背景: {choice}")
                             preset_source_path = os.path.join('static', 'backgrounds', choice)
                             if os.path.exists(preset_source_path):
@@ -1551,10 +1551,10 @@ def run_initial_processing(process_id, pdf_path, base_name):
                                 background_to_apply = choice
                             else:
                                 update_job_status(log_msg=f'    ⚠️ 预设背景文件不存在: {preset_source_path}，跳过应用')
-                        if choice == 'background.jpg':
-                            print(f"  [DEBUG] 检测到用户选择了默认背景，使用默认背景。")
-                            background_to_apply = 'pptcover/background.jpg'
-                            update_job_status(log_msg=f'    -> 使用默认背景: {background_to_apply}')
+                        # if choice == 'background.jpg':
+                        #     print(f"  [DEBUG] 检测到用户选择了默认背景，使用默认背景。")
+                        #     background_to_apply = 'pptcover/background.jpg'
+                        #     update_job_status(log_msg=f'    -> 使用默认背景: {background_to_apply}')
                         
                         # 如果成功复制了背景文件，则调用脚本应用它
                         if background_to_apply:
@@ -1756,6 +1756,7 @@ def run_folder_processing(process_id, folder_path, base_name):
         # 选择要执行的脚本 (这部分逻辑和单文件处理完全一样)
         script_to_run = ''
         if chosen_format == 'video':
+            
             script_to_run = 'all_pipeline_video.py'
         elif chosen_format == 'markdown':
             script_to_run = 'all_pipeline_markdown.py'
@@ -1834,7 +1835,7 @@ def run_folder_processing(process_id, folder_path, base_name):
                             shutil.copy2(py_file, os.path.join(code_dir, filename))
                             update_job_status(log_msg=f'✅ 复制: {filename}')
                         
-                        logo_source = "/home/EduAgent/static/template_images/EDUPAL_logo.png"
+                        logo_source = "/home/EduAgent/static/images/EDUPAL_logo.png"
                         if os.path.exists(logo_source):
                             shutil.copy2(logo_source, os.path.join(code_dir, "EDUPAL_logo.png"))
                             update_job_status(log_msg=f'✅ 复制logo文件: EDUPAL_logo.png')
@@ -2834,25 +2835,26 @@ def generate_pptcover_content(process_id):
     try:
         # 设置路径
         source_manim_template_path = Path("/home/EduAgent/pptcover/beginpage.py")
-        mineru_output_dir = Path(f"/home/EduAgent/MinerU/outputs_clean/{base_name}")
+        mineru_output_dir = Path(f"/home/EduAgent/outputs/mineru/outputs_clean/{base_name}")
         p2v_output_dir = Path(f"/home/EduAgent/Paper2Video/{base_name}_output")
         code_dir = p2v_output_dir / "final_results" / "Code"
         print("正在生成ppt封面...")
-        
         # 检查必要的目录和文件是否存在
         if not source_manim_template_path.exists():
             raise FileNotFoundError(f"PPT模板文件不存在: {source_manim_template_path}")
         
         if not code_dir.exists():
             raise FileNotFoundError(f"Code目录不存在: {code_dir}")
-            
+        print("正在生成ppt封面111...")
         # 检查MinerU输出目录
         if not mineru_output_dir.exists():
+            print("正在生成ppt封面222...")
             # 尝试创建或查找其他可能的目录
             alt_mineru_dir = Path(f"/home/EduAgent/MinerU/outputs/{base_name}")
             if alt_mineru_dir.exists():
                 mineru_output_dir = alt_mineru_dir
             else:
+                print("正在生成ppt封面333...")
                 # 如果找不到MinerU输出，使用默认内容
                 with processing_lock:
                     if process_id in processing_jobs:
@@ -3767,7 +3769,7 @@ def run_folder_markdown_generation(process_id, base_name):
             images_dir,# <--- 【修改】使用我们动态找到的正确路径
             output_md_path,
             '--watermark',
-            '/home/EduAgent/backend/app/static/template_images/EDUPAL_logo.png'
+            '/home/EduAgent/backend/app/static/images/EDUPAL_logo.png'
         ]
 
         update_job_status(log_msg=f'⚙️ 执行命令: {" ".join(cmd)}') # 增加日志，方便调试
@@ -3887,7 +3889,7 @@ def run_markdown_generation(process_id, base_name):
             images_dir,# <--- 【修改】使用我们动态找到的正确路径
             output_md_path,
             '--watermark',
-            '/home/EduAgent/backend/app/static/template_images/EDUPAL_logo.png'
+            '/home/EduAgent/backend/app/static/images/EDUPAL_logo.png'
         ]
 
         update_job_status(log_msg=f'⚙️ 执行命令: {" ".join(cmd)}') # 增加日志，方便调试
