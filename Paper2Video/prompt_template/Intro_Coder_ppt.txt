@@ -50,7 +50,7 @@ prs.slide_height = Inches(7.5)
 slide_layout = prs.slide_layouts[6]  # 空白布局
 slide = prs.slides.add_slide(slide_layout)
 
-bg_img_path = "/home/EduAgent/pptcover/background.jpg"  #此行不要改动
+bg_img_path = "/home/EduAgent/assets/ppt/pptcover/background.jpg"  #此行不要改动
 
 # 添加背景图（现在它确实在底层）
 slide.shapes.add_picture(

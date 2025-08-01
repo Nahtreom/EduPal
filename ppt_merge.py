@@ -88,6 +88,38 @@ def generate_complete_ppt_from_folder(folder_path, output_ppt_path):
 
         # 使用 exec 执行PPT代码，并将生成的页面添加到PPT中
         create_slide_from_code(prs, slide_code)
+    
+    slide_layout = prs.slide_layouts[6]  # 空白布局
+    slide = prs.slides.add_slide(slide_layout)
+
+    # 获取幻灯片的宽度和高度
+    slide_width = prs.slide_width
+    slide_height = prs.slide_height
+
+    # 设置图片位置为幻灯片左上角，大小为幻灯片的宽高
+    left = top = 0
+    width = slide_width
+    height = slide_height
+
+
+    title_text = "Thanks"
+
+    left = Inches(1)
+    top = Inches(2)
+    width = slide_width - Inches(2)
+    height = Inches(3.5)
+
+    textbox = slide.shapes.add_textbox(left, top, width, height)
+    text_frame = textbox.text_frame
+    text_frame.word_wrap = True  # ✅ 启用自动换行
+    text_frame.clear()  # 清除默认段落
+
+    # 添加标题段落
+    p1 = text_frame.add_paragraph()
+    p1.text = title_text
+    p1.font.size = Pt(46)
+    p1.font.color.rgb = RGBColor(0, 0, 0)
+    p1.alignment = PP_ALIGN.CENTER
 
     # 保存完整PPT
     prs.save(output_ppt_path)

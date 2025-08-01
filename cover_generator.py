@@ -13,7 +13,7 @@ from api_call import APIClient
 
 CONFIG_FILE_PATH = Path("/home/EduAgent/config.json")
 # --- 新增：定义Manim代码模板的源文件路径 ---
-SOURCE_MANIM_TEMPLATE_PATH = Path("/home/EduAgent/cover/1Introduction_code.py")
+SOURCE_MANIM_TEMPLATE_PATH = Path("/home/EduAgent/assets/video/cover/1Introduction_code.py")
 
 
 def load_config() -> Dict:

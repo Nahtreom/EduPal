@@ -16,7 +16,7 @@ Generate Python code using `python-pptx` to create a PowerPoint slide for a tech
 14. Add table comparisons when necessary, placing them to the right or below the text, ensuring they do not interfere with the body.
 15. Add safe placeholder access checks (e.g., `if len(slide.placeholders) > 1:`).
 16. 确保在生成代码中加入了背景图，确保把背景图路径名称设定为bg_img_path，方便后期正则匹配替换路径。背景图代码示例如下：
-bg_img_path = "/home/EduAgent/pptcover/background.jpg"  #此行不要改动
+bg_img_path = "/home/EduAgent/assets/ppt/pptcover/background.jpg"  #此行不要改动
 
 # 添加背景图（现在它确实在底层）
 slide.shapes.add_picture(

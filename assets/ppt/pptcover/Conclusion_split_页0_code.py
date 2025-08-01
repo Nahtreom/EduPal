@@ -27,7 +27,7 @@ width = slide_width
 height = slide_height
 
 
-title_text = "Introduction"
+title_text = "Conclusion"
 
 left = Inches(1)
 top = Inches(2)
@@ -42,7 +42,7 @@ text_frame.clear()  # 清除默认段落
 # 添加标题段落
 p1 = text_frame.add_paragraph()
 p1.text = title_text
-p1.font.size = Pt(40)
+p1.font.size = Pt(46)
 p1.font.color.rgb = RGBColor(0, 0, 0)
 p1.alignment = PP_ALIGN.CENTER
 

@@ -1351,9 +1351,9 @@ def run_initial_processing(process_id, pdf_path, base_name):
                 output_dir = f"Paper2Video/{base_name}_output"
                 code_dir = f"{output_dir}/final_results/Code"
                 try:
-                    if os.path.exists("cover") and os.path.exists(code_dir):
+                    if os.path.exists("assets/video/cover") and os.path.exists(code_dir):
                         import shutil
-                        for py_file in glob.glob("cover/*.py"):
+                        for py_file in glob.glob("assets/video/cover/*.py"):
                             filename = os.path.basename(py_file)
                             shutil.copy2(py_file, os.path.join(code_dir, filename))
                             update_job_status(log_msg=f'✅ 复制: {filename}')
@@ -1476,14 +1476,14 @@ def run_initial_processing(process_id, pdf_path, base_name):
                 output_dir = f"Paper2Video/{base_name}_output"
                 code_dir = f"{output_dir}/final_results/Code"
                 try:
-                    if os.path.exists("pptcover") and os.path.exists(code_dir):
+                    if os.path.exists("assets/ppt/pptcover") and os.path.exists(code_dir):
                         import shutil
-                        for py_file in glob.glob("pptcover/*.py"):
+                        for py_file in glob.glob("assets/ppt/pptcover/*.py"):
                             filename = os.path.basename(py_file)
                             shutil.copy2(py_file, os.path.join(code_dir, filename))
                             update_job_status(log_msg=f'✅ 复制: {filename}')
                         
-                        logo_source = "/home/EduAgent/pptcover/logo_test.png"
+                        logo_source = "/home/EduAgent/assets/ppt/pptcover/logo_test.png"
                         if os.path.exists(logo_source):
                             shutil.copy2(logo_source, os.path.join(code_dir, "logo_test.png"))
                             update_job_status(log_msg=f'✅ 复制logo文件: logo_test.png')
@@ -1573,7 +1573,7 @@ def run_initial_processing(process_id, pdf_path, base_name):
                     else:
                         update_job_status(log_msg='🎨 用户未指定特殊背景，使用默认背景。')
                         print(f"  [DEBUG] 未指定特殊背景，使用默认背景。")
-                        background_to_apply = 'pptcover/background.jpg'
+                        background_to_apply = 'assets/ppt/pptcover/background.jpg'
                         apply_result = apply_background_to_code(process_id, background_to_apply)
 
                 except Exception as e:
@@ -1828,9 +1828,9 @@ def run_folder_processing(process_id, folder_path, base_name):
                 output_dir = f"Paper2Video/{base_name}_output"
                 code_dir = f"{output_dir}/final_results/Code"
                 try:
-                    if os.path.exists("cover") and os.path.exists(code_dir):
+                    if os.path.exists("assets/video/cover") and os.path.exists(code_dir):
                         import shutil
-                        for py_file in glob.glob("cover/*.py"):
+                        for py_file in glob.glob("assets/video/cover/*.py"):
                             filename = os.path.basename(py_file)
                             shutil.copy2(py_file, os.path.join(code_dir, filename))
                             update_job_status(log_msg=f'✅ 复制: {filename}')
@@ -1914,7 +1914,7 @@ def run_folder_processing(process_id, folder_path, base_name):
                     else:
                         print("🎨 用户未指定特殊背景，使用默认背景。")
                         update_job_status(log_msg='🎨 用户未指定特殊背景，使用默认背景。')
-                        background_to_apply = 'pptcover/background.jpg'
+                        background_to_apply = 'assets/ppt/pptcover/background.jpg'
                         apply_result = apply_background_to_code(process_id, background_to_apply)
 
                 except Exception as e:
@@ -1956,9 +1956,9 @@ def run_folder_processing(process_id, folder_path, base_name):
                 output_dir = f"Paper2Video/{base_name}_output"
                 code_dir = f"{output_dir}/final_results/Code"
                 try:
-                    if os.path.exists("pptcover") and os.path.exists(code_dir):
+                    if os.path.exists("assets/ppt/pptcover") and os.path.exists(code_dir):
                         import shutil
-                        for py_file in glob.glob("pptcover/*.py"):
+                        for py_file in glob.glob("assets/ppt/pptcover/*.py"):
                             filename = os.path.basename(py_file)
                             shutil.copy2(py_file, os.path.join(code_dir, filename))
                             update_job_status(log_msg=f'✅ 复制: {filename}')
@@ -2523,8 +2523,8 @@ def generate_cover_content(process_id):
     
     try:
         # 设置路径
-        source_manim_template_path = Path("/home/EduAgent/cover/1Introduction_code.py")
-        mineru_output_dir = Path(f"/home/EduAgent/MinerU/outputs_clean/{base_name}")
+        source_manim_template_path = Path("/home/EduAgent/assets/video/cover/1Introduction_code.py")
+        mineru_output_dir = Path(f"/home/EduAgent/outputs/mineru/outputs_clean/{base_name}")
         p2v_output_dir = Path(f"/home/EduAgent/Paper2Video/{base_name}_output")
         code_dir = p2v_output_dir / "final_results" / "Code"
         speech_dir = p2v_output_dir / "final_results" / "Speech"
@@ -2712,7 +2712,7 @@ def generate_cover_content(process_id):
                     })
         
         # --- 新增功能：复制其余的py文件和所有txt文件 ---
-        source_cover_dir = Path("/home/EduAgent/cover/")
+        source_cover_dir = Path("/home/EduAgent/assets/video/cover/")
         # 1. 复制其余的py文件 (除了1Introduction_code.py)
         # with processing_lock:
         #     job['log_messages'].append({'time': datetime.now().isoformat(), 'message': '📋 开始复制其余的code.py文件...'})
@@ -2834,7 +2834,7 @@ def generate_pptcover_content(process_id):
     
     try:
         # 设置路径
-        source_manim_template_path = Path("/home/EduAgent/pptcover/beginpage.py")
+        source_manim_template_path = Path("/home/EduAgent/assets/ppt/pptcover/beginpage.py")
         mineru_output_dir = Path(f"/home/EduAgent/outputs/mineru/outputs_clean/{base_name}")
         p2v_output_dir = Path(f"/home/EduAgent/Paper2Video/{base_name}_output")
         code_dir = p2v_output_dir / "final_results" / "Code"
@@ -3068,7 +3068,7 @@ def create_default_cover(code_dir, speech_dir, base_name):
     default_affiliations = "未知单位"
     
     # 创建封面场景代码文件
-    source_manim_template_path = Path("/home/EduAgent/cover/1Introduction_code.py")
+    source_manim_template_path = Path("/home/EduAgent/assets/video/ /1Introduction_code.py")
     destination_manim_path = code_dir / "1Introduction_code.py"
     
     # 从源模板读取内容

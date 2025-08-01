@@ -18,7 +18,7 @@ def check_ffmpeg():
 
 def copy_cover_audio_files(audio_dir):
     """将cover目录下的.wav文件复制到Speech_Audio目录"""
-    cover_dir = "cover"
+    cover_dir = "assets/video/cover"
     
     print("🎵 开始复制cover音频文件...")
     
